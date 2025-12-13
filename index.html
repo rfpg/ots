@@ -924,18 +924,36 @@
                 openEditModal(player);
             });
 
-            // Long press to edit (mobile)
+            // Long press to edit, tap to move (mobile)
             let longPressTimer;
             let touchStartPos = null;
+            let longPressTriggered = false;
             element.addEventListener('touchstart', (e) => {
                 touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                longPressTriggered = false;
                 longPressTimer = setTimeout(() => {
+                    longPressTriggered = true;
                     openEditModal(player);
                 }, 500);
             });
 
-            element.addEventListener('touchend', () => {
+            element.addEventListener('touchend', (e) => {
                 clearTimeout(longPressTimer);
+                // Single tap to move between members and signedup
+                if (!longPressTriggered && touchStartPos) {
+                    const dx = e.changedTouches[0].clientX - touchStartPos.x;
+                    const dy = e.changedTouches[0].clientY - touchStartPos.y;
+                    // Only trigger if didn't move much (it's a tap, not a drag)
+                    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+                        if (player.team === 'members') {
+                            player.team = 'signedup';
+                            render();
+                        } else if (player.team === 'signedup') {
+                            player.team = 'members';
+                            render();
+                        }
+                    }
+                }
                 touchStartPos = null;
             });
 
