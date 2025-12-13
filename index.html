@@ -924,6 +924,23 @@
                 openEditModal(player);
             });
 
+            // Long press to edit (mobile)
+            let longPressTimer;
+            element.addEventListener('touchstart', (e) => {
+                longPressTimer = setTimeout(() => {
+                    e.preventDefault();
+                    openEditModal(player);
+                }, 500);
+            }, { passive: false });
+
+            element.addEventListener('touchend', () => {
+                clearTimeout(longPressTimer);
+            });
+
+            element.addEventListener('touchmove', () => {
+                clearTimeout(longPressTimer);
+            });
+
             // Double-click to move from members to signed up
             element.addEventListener('dblclick', () => {
                 if (player.team === 'members') {
