@@ -40,6 +40,12 @@
             margin-bottom: 28px;
         }
 
+        .org-flag {
+            height: 12px;
+            vertical-align: middle;
+            margin-right: 2px;
+        }
+
         .container {
             max-width: 1600px;
             margin: 0 auto;
@@ -554,7 +560,7 @@
 <body>
     <div class="container">
         <h1>Old Town Pickup Soccer</h1>
-        <p class="organizers">Organizers: Ricky, Ben, Evan, Tom W & Tom M</p>
+        <p class="organizers">Organizers: <img src="https://flagcdn.com/w20/ie.png" alt="IE" class="org-flag"> Ricky, <img src="https://flagcdn.com/w20/gb-sct.png" alt="SCT" class="org-flag"> Ben, <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Evan, <img src="https://flagcdn.com/w20/pl.png" alt="PL" class="org-flag"> Tom W & <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Tom M</p>
 
         <div class="controls">
             <button class="primary" onclick="shuffleTeams()">Shuffle & Balance Teams</button>
@@ -708,10 +714,12 @@
             { id: 25, name: 'Kirby', country: 'us', off: 5, def: 5, team: 'members' },
             { id: 26, name: 'Justin', country: 'us', off: 5, def: 5, team: 'members' },
             { id: 27, name: 'Daniel', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 28, name: 'Troy', country: 'us', off: 5, def: 5, team: 'members' }
+            { id: 28, name: 'Troy', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 29, name: 'Soren', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 30, name: 'Zane', country: 'us', off: 5, def: 5, team: 'members' }
         ];
 
-        let nextId = 29;
+        let nextId = 31;
         let draggedPlayer = null;
         let editingPlayerId = null;
 
