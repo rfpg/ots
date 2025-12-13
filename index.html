@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Old Town Pickup Soccer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            min-height: 100vh;
+            padding: 32px 24px;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #0a0a0a;
+        }
+
+        .organizers {
+            text-align: center;
+            font-size: 0.8125rem;
+            color: #737373;
+            margin-bottom: 28px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: #0a0a0a;
+            color: #fafafa;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            transition: all 0.15s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        button:hover {
+            background: #262626;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.primary {
+            background: #059669;
+        }
+
+        button.primary:hover {
+            background: #10b981;
+        }
+
+        button.small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        select {
+            background: #fff;
+            color: #1a1a1a;
+            border: 1px solid #e5e5e5;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: border-color 0.15s ease;
+        }
+
+        select:hover {
+            border-color: #d4d4d4;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #0a0a0a;
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr 280px 1fr;
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 800px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+            border: 1px solid #f0f0f0;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .section-header h2 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #525252;
+        }
+
+        .section-header .count {
+            font-size: 0.6875rem;
+            color: #a3a3a3;
+            font-weight: 500;
+        }
+
+        .team-section .section-header h2 {
+            color: #2563eb;
+        }
+
+        .team-section.red .section-header h2 {
+            color: #dc2626;
+        }
+
+        .team-stats {
+            font-size: 0.6875rem;
+            color: #737373;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .pitch {
+            background: linear-gradient(to bottom, #2d5a27 0%, #3d7a37 50%, #2d5a27 100%);
+            border-radius: 8px;
+            aspect-ratio: 1 / 1.4;
+            position: relative;
+            border: 3px solid #fff;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        .pitch::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .pitch::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            border: 2px solid rgba(255,255,255,0.5);
+            border-radius: 50%;
+        }
+
+        .pitch .penalty-area-top,
+        .pitch .penalty-area-bottom,
+        .pitch .goal-area-top,
+        .pitch .goal-area-bottom {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 2px solid rgba(255,255,255,0.5);
+        }
+
+        .pitch .penalty-area-top {
+            top: 0;
+            width: 60%;
+            height: 18%;
+            border-top: none;
+        }
+
+        .pitch .penalty-area-bottom {
+            bottom: 0;
+            width: 60%;
+            height: 18%;
+            border-bottom: none;
+        }
+
+        .pitch .goal-area-top {
+            top: 0;
+            width: 30%;
+            height: 8%;
+            border-top: none;
+        }
+
+        .pitch .goal-area-bottom {
+            bottom: 0;
+            width: 30%;
+            height: 8%;
+            border-bottom: none;
+        }
+
+        .player-marker {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 10;
+            cursor: grab;
+        }
+
+        .player-marker:active {
+            cursor: grabbing;
+        }
+
+        .player-marker .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2px;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .player-marker .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-marker.blue .avatar {
+            background: #2563eb;
+        }
+
+        .player-marker.red .avatar {
+            background: #dc2626;
+        }
+
+        .player-marker .name {
+            font-size: 0.55rem;
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            white-space: nowrap;
+            letter-spacing: 0.01em;
+            color: #fff;
+        }
+
+        /* Player lists */
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            max-height: 400px;
+            overflow-y: auto;
+            min-height: 80px;
+            padding: 4px;
+            background: #fafafa;
+            border-radius: 6px;
+            border: 1px solid #e5e5e5;
+        }
+
+        .player-list.drag-over {
+            background: #f5f5f5;
+            border-color: #d4d4d4;
+        }
+
+        .player-list.blue.drag-over {
+            background: #eff6ff;
+            border-color: #2563eb;
+        }
+
+        .player-list.red.drag-over {
+            background: #fef2f2;
+            border-color: #dc2626;
+        }
+
+        .player-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            padding: 8px 10px;
+            border-radius: 5px;
+            cursor: grab;
+            transition: all 0.15s ease;
+            border: 1px solid #e5e5e5;
+        }
+
+        .player-chip:hover {
+            border-color: #d4d4d4;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        .player-chip:active {
+            cursor: grabbing;
+        }
+
+        .player-chip.dragging {
+            opacity: 0.5;
+            transform: scale(0.98);
+        }
+
+        .player-chip .flag {
+            width: 20px;
+            height: 14px;
+            border-radius: 2px;
+            overflow: hidden;
+            flex-shrink: 0;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.1);
+        }
+
+        .player-chip .flag img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-chip .name {
+            flex: 1;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #262626;
+        }
+
+        .player-chip .ratings {
+            font-size: 0.625rem;
+            color: #a3a3a3;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* Members section - compact */
+        .members-section .player-chip {
+            padding: 6px 8px;
+        }
+
+        .members-section .player-chip .name {
+            font-size: 0.6875rem;
+        }
+
+        /* Team list below pitch */
+        .team-list {
+            margin-top: 10px;
+        }
+
+        .formation-select {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .formation-select label {
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #525252;
+        }
+
+        /* Add member form */
+        .add-member-form {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .add-member-form input {
+            flex: 1;
+            padding: 6px 8px;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .add-member-form input:focus {
+            outline: none;
+            border-color: #0a0a0a;
+        }
+
+        .add-member-form select {
+            padding: 6px 8px;
+            font-size: 0.75rem;
+        }
+
+        /* Signed up section */
+        .signed-up-section {
+            background: #fff;
+        }
+
+        .signed-up-section .section-header h2 {
+            color: #059669;
+        }
+
+        /* Export container */
+        .export-container {
+            display: flex;
+            gap: 24px;
+            padding: 24px;
+            background: #fff;
+            justify-content: center;
+        }
+
+        .export-container .team-section {
+            width: 350px;
+        }
+
+        /* Edit Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            min-width: 280px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+        }
+
+        .modal h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #0a0a0a;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal h3 img {
+            width: 24px;
+            height: 18px;
+            border-radius: 2px;
+        }
+
+        .modal-field {
+            margin-bottom: 16px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #737373;
+            margin-bottom: 6px;
+        }
+
+        .modal-field input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 0.9375rem;
+            font-weight: 500;
+            transition: border-color 0.15s ease;
+        }
+
+        .modal-field input:focus {
+            outline: none;
+            border-color: #0a0a0a;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 20px;
+        }
+
+        .modal-actions button {
+            flex: 1;
+        }
+
+        .modal-actions button.secondary {
+            background: #fff;
+            color: #525252;
+            border: 1px solid #e5e5e5;
+        }
+
+        .modal-actions button.secondary:hover {
+            background: #fafafa;
+            border-color: #d4d4d4;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 20px;
+            color: #a3a3a3;
+            font-size: 0.75rem;
+        }
+    </style>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Old Town Pickup Soccer</h1>
+        <p class="organizers">Organizers: Ricky, Ben, Evan, Tom W & Tom M</p>
+
+        <div class="controls">
+            <button class="primary" onclick="shuffleTeams()">Shuffle & Balance Teams</button>
+            <button onclick="resetSignedUp()">Reset Teams</button>
+            <button onclick="exportImage()">Download Image</button>
+            <div class="formation-select">
+                <label>Formation:</label>
+                <select id="formationSelect" onchange="render()">
+                    <option value="4-4-2">4-4-2</option>
+                    <option value="4-3-3">4-3-3</option>
+                    <option value="3-5-2">3-5-2</option>
+                    <option value="5-3-2">5-3-2</option>
+                    <option value="4-5-1">4-5-1</option>
+                    <option value="3-4-3">3-4-3</option>
+                    <option value="2-3-1">2-3-1 (7v7)</option>
+                    <option value="2-2-1">2-2-1 (6v6)</option>
+                    <option value="1-2-1">1-2-1 (5v5)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="main-layout">
+            <!-- Members Pool -->
+            <div class="section members-section">
+                <div class="section-header">
+                    <h2>Members</h2>
+                    <span class="count" id="membersCount"></span>
+                </div>
+                <div class="add-member-form">
+                    <input type="text" id="newMemberName" placeholder="Name">
+                    <select id="newMemberCountry">
+                        <option value="us">US</option>
+                        <option value="ie">IE</option>
+                        <option value="mx">MX</option>
+                        <option value="ec">EC</option>
+                        <option value="tr">TR</option>
+                        <option value="al">AL</option>
+                        <option value="fr">FR</option>
+                        <option value="pl">PL</option>
+                        <option value="gb-sct">SCO</option>
+                    </select>
+                    <button class="small" onclick="addMember()">+</button>
+                </div>
+                <div class="player-list" id="membersList" data-team="members"></div>
+            </div>
+
+            <!-- Blue Team -->
+            <div class="section team-section">
+                <div class="section-header">
+                    <h2>Blue Team</h2>
+                    <span class="team-stats" id="blueStats"></span>
+                </div>
+                <div class="pitch" id="bluePitch">
+                    <div class="penalty-area-top"></div>
+                    <div class="penalty-area-bottom"></div>
+                    <div class="goal-area-top"></div>
+                    <div class="goal-area-bottom"></div>
+                </div>
+                <div class="player-list team-list blue" id="blueList" data-team="blue"></div>
+            </div>
+
+            <!-- Signed Up Pool -->
+            <div class="section signed-up-section">
+                <div class="section-header">
+                    <h2>Signed Up</h2>
+                    <span class="count" id="signedUpCount"></span>
+                </div>
+                <div class="player-list" id="signedUpList" data-team="signedup"></div>
+            </div>
+
+            <!-- Red Team -->
+            <div class="section team-section red">
+                <div class="section-header">
+                    <h2>Red Team</h2>
+                    <span class="team-stats" id="redStats"></span>
+                </div>
+                <div class="pitch" id="redPitch">
+                    <div class="penalty-area-top"></div>
+                    <div class="penalty-area-bottom"></div>
+                    <div class="goal-area-top"></div>
+                    <div class="goal-area-bottom"></div>
+                </div>
+                <div class="player-list team-list red" id="redList" data-team="red"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <h3 id="modalTitle"></h3>
+            <div class="modal-field">
+                <label>Offensive Rating (0-10)</label>
+                <input type="number" id="editOff" min="0" max="10">
+            </div>
+            <div class="modal-field">
+                <label>Defensive Rating (0-10)</label>
+                <input type="number" id="editDef" min="0" max="10">
+            </div>
+            <div class="modal-actions">
+                <button class="secondary" onclick="closeModal()">Cancel</button>
+                <button onclick="savePlayerEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Flag images from flagcdn.com
+        function getFlag(country) {
+            return `<img src="https://flagcdn.com/w40/${country}.png" alt="${country}">`;
+        }
+
+        const FORMATIONS = {
+            '4-4-2': { def: 4, mid: 4, fwd: 2 },
+            '4-3-3': { def: 4, mid: 3, fwd: 3 },
+            '3-5-2': { def: 3, mid: 5, fwd: 2 },
+            '5-3-2': { def: 5, mid: 3, fwd: 2 },
+            '4-5-1': { def: 4, mid: 5, fwd: 1 },
+            '3-4-3': { def: 3, mid: 4, fwd: 3 },
+            '2-3-1': { def: 2, mid: 3, fwd: 1 },
+            '2-2-1': { def: 2, mid: 2, fwd: 1 },
+            '1-2-1': { def: 1, mid: 2, fwd: 1 }
+        };
+
+        // All members with default 5/5 ratings
+        const players = [
+            { id: 1, name: 'Andrew', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 2, name: 'Tom M', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 3, name: 'Quentin', country: 'fr', off: 5, def: 5, team: 'members' },
+            { id: 4, name: 'Ricky', country: 'ie', off: 5, def: 5, team: 'members' },
+            { id: 5, name: 'Femi', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 6, name: 'Shane', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 7, name: 'Milton', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 8, name: 'Walter', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 9, name: 'Blake', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 10, name: 'Safak', country: 'tr', off: 5, def: 5, team: 'members' },
+            { id: 11, name: 'Drew', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 12, name: 'Evan', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 13, name: 'Tom W', country: 'pl', off: 5, def: 5, team: 'members' },
+            { id: 14, name: 'Thomas', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 15, name: 'Klodi', country: 'al', off: 5, def: 5, team: 'members' },
+            { id: 16, name: 'Ryan', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 17, name: 'Edwin', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 18, name: 'Abel', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 19, name: 'Victor', country: 'ec', off: 5, def: 5, team: 'members' },
+            { id: 20, name: 'James', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 21, name: 'Ben', country: 'gb-sct', off: 5, def: 5, team: 'members' },
+            { id: 22, name: 'Marcos', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 23, name: 'John', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 24, name: 'Omar', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 25, name: 'Kirby', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 26, name: 'Justin', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 27, name: 'Daniel', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 28, name: 'Troy', country: 'us', off: 5, def: 5, team: 'members' }
+        ];
+
+        let nextId = 29;
+        let draggedPlayer = null;
+        let editingPlayerId = null;
+
+        // Modal functions
+        function openEditModal(player) {
+            editingPlayerId = player.id;
+            document.getElementById('modalTitle').innerHTML =
+                `${getFlag(player.country)} ${player.name}`;
+            document.getElementById('editOff').value = player.off;
+            document.getElementById('editDef').value = player.def;
+            document.getElementById('editModal').classList.add('active');
+            document.getElementById('editOff').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            editingPlayerId = null;
+        }
+
+        function savePlayerEdit() {
+            if (editingPlayerId === null) return;
+            const player = players.find(p => p.id === editingPlayerId);
+            if (player) {
+                player.off = Math.max(0, Math.min(10, parseInt(document.getElementById('editOff').value) || 0));
+                player.def = Math.max(0, Math.min(10, parseInt(document.getElementById('editDef').value) || 0));
+                render();
+            }
+            closeModal();
+        }
+
+        // Close modal on overlay click
+        document.getElementById('editModal').addEventListener('click', (e) => {
+            if (e.target.id === 'editModal') closeModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeModal();
+            if (e.key === 'Enter' && editingPlayerId !== null) savePlayerEdit();
+        });
+
+        function getTeamPlayers(team) {
+            return players.filter(p => p.team === team);
+        }
+
+        function calculateTeamStats(team) {
+            const teamPlayers = getTeamPlayers(team);
+            const totalOff = teamPlayers.reduce((sum, p) => sum + p.off, 0);
+            const totalDef = teamPlayers.reduce((sum, p) => sum + p.def, 0);
+            return { off: totalOff, def: totalDef, count: teamPlayers.length };
+        }
+
+        function updateStats() {
+            const blueStats = calculateTeamStats('blue');
+            const redStats = calculateTeamStats('red');
+            const membersCount = getTeamPlayers('members').length;
+            const signedUpCount = getTeamPlayers('signedup').length;
+
+            document.getElementById('blueStats').textContent =
+                `${blueStats.count}p | O:${blueStats.off} D:${blueStats.def}`;
+            document.getElementById('redStats').textContent =
+                `${redStats.count}p | O:${redStats.off} D:${redStats.def}`;
+            document.getElementById('membersCount').textContent = `${membersCount}`;
+            document.getElementById('signedUpCount').textContent = `${signedUpCount}`;
+        }
+
+        function getFormation() {
+            return document.getElementById('formationSelect').value;
+        }
+
+        function getPositionCoordinates(position, index, total, team) {
+            const formation = FORMATIONS[getFormation()];
+
+            if (position === 'gk') {
+                return { x: 50, y: team === 'blue' ? 92 : 8 };
+            }
+
+            const defY = team === 'blue' ? 75 : 25;
+            const midY = 50;
+            const fwdY = team === 'blue' ? 25 : 75;
+
+            let rowTotal, y;
+            if (position === 'def') {
+                rowTotal = formation.def;
+                y = defY;
+            } else if (position === 'mid') {
+                rowTotal = formation.mid;
+                y = midY;
+            } else {
+                rowTotal = formation.fwd;
+                y = fwdY;
+            }
+
+            const spacing = 70 / (rowTotal + 1);
+            return { x: 15 + spacing * (index + 1), y };
+        }
+
+        function assignPositions(teamPlayers) {
+            const formation = FORMATIONS[getFormation()];
+            const sorted = [...teamPlayers].sort((a, b) => (b.def - b.off) - (a.def - a.off));
+
+            const positions = [];
+            let idx = 0;
+
+            // GK
+            if (sorted.length > 0) {
+                positions.push({ ...sorted[idx++], position: 'gk', posIndex: 0 });
+            }
+
+            // Defenders
+            for (let i = 0; i < formation.def && idx < sorted.length; i++) {
+                positions.push({ ...sorted[idx++], position: 'def', posIndex: i });
+            }
+
+            // Get forwards from the end (most offensive)
+            const forwards = [];
+            for (let i = 0; i < formation.fwd && sorted.length - 1 - i >= idx; i++) {
+                forwards.unshift({ ...sorted[sorted.length - 1 - i], position: 'fwd', posIndex: formation.fwd - 1 - i });
+            }
+
+            // Midfielders (everyone in between)
+            const midEnd = sorted.length - forwards.length;
+            for (let i = idx; i < midEnd && (i - idx) < formation.mid; i++) {
+                positions.push({ ...sorted[i], position: 'mid', posIndex: i - idx });
+            }
+
+            positions.push(...forwards);
+            return positions;
+        }
+
+        function renderPitch(team) {
+            const pitch = document.getElementById(`${team}Pitch`);
+            pitch.querySelectorAll('.player-marker').forEach(el => el.remove());
+
+            const teamPlayers = getTeamPlayers(team);
+            const positioned = assignPositions(teamPlayers);
+
+            positioned.forEach(player => {
+                const coords = getPositionCoordinates(player.position, player.posIndex, 0, team);
+                const marker = document.createElement('div');
+                marker.className = `player-marker ${team}`;
+                marker.style.left = `${coords.x}%`;
+                marker.style.top = `${coords.y}%`;
+                marker.draggable = true;
+                marker.dataset.playerId = player.id;
+                marker.innerHTML = `
+                    <div class="avatar">${getFlag(player.country)}</div>
+                    <div class="name">${player.name}</div>
+                `;
+                setupDragEvents(marker, player);
+                pitch.appendChild(marker);
+            });
+        }
+
+        function renderList(containerId, team) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+
+            const teamPlayers = getTeamPlayers(team);
+
+            if (teamPlayers.length === 0) {
+                container.innerHTML = '<div class="empty-state">Drag players here</div>';
+                return;
+            }
+
+            teamPlayers.forEach(player => {
+                const chip = createPlayerChip(player);
+                container.appendChild(chip);
+            });
+        }
+
+        function createPlayerChip(player) {
+            const chip = document.createElement('div');
+            chip.className = 'player-chip';
+            chip.draggable = true;
+            chip.dataset.playerId = player.id;
+            chip.innerHTML = `
+                <div class="flag">${getFlag(player.country)}</div>
+                <span class="name">${player.name}</span>
+                <span class="ratings">${player.off}/${player.def}</span>
+            `;
+            setupDragEvents(chip, player);
+            return chip;
+        }
+
+        function setupDragEvents(element, player) {
+            element.addEventListener('dragstart', (e) => {
+                draggedPlayer = player;
+                element.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+
+            element.addEventListener('dragend', () => {
+                element.classList.remove('dragging');
+                draggedPlayer = null;
+            });
+
+            // Right-click to edit
+            element.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                openEditModal(player);
+            });
+        }
+
+        function setupDropZone(element, team) {
+            element.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                element.classList.add('drag-over');
+            });
+
+            element.addEventListener('dragleave', () => {
+                element.classList.remove('drag-over');
+            });
+
+            element.addEventListener('drop', (e) => {
+                e.preventDefault();
+                element.classList.remove('drag-over');
+                if (draggedPlayer) {
+                    draggedPlayer.team = team;
+                    render();
+                }
+            });
+        }
+
+        function addMember() {
+            const name = document.getElementById('newMemberName').value.trim();
+            if (!name) return;
+
+            const country = document.getElementById('newMemberCountry').value;
+
+            players.push({
+                id: nextId++,
+                name,
+                country,
+                off: 5,  // Default rating
+                def: 5,  // Default rating
+                team: 'members'
+            });
+
+            document.getElementById('newMemberName').value = '';
+            render();
+        }
+
+        function shuffleTeams() {
+            // Only shuffle players who are signed up (not in members pool)
+            const signedUp = players.filter(p => p.team === 'signedup' || p.team === 'blue' || p.team === 'red');
+
+            if (signedUp.length === 0) {
+                alert('No players signed up! Drag players from Members to Signed Up first.');
+                return;
+            }
+
+            const shuffled = [...signedUp].sort(() => Math.random() - 0.5);
+            shuffled.sort((a, b) => (b.off + b.def) - (a.off + a.def));
+
+            let blueTotal = 0, redTotal = 0;
+            shuffled.forEach(player => {
+                const total = player.off + player.def;
+                if (blueTotal <= redTotal) {
+                    player.team = 'blue';
+                    blueTotal += total;
+                } else {
+                    player.team = 'red';
+                    redTotal += total;
+                }
+            });
+            render();
+        }
+
+        function resetSignedUp() {
+            // Move all team players back to signed up
+            players.forEach(p => {
+                if (p.team === 'blue' || p.team === 'red') {
+                    p.team = 'signedup';
+                }
+            });
+            render();
+        }
+
+        function render() {
+            renderPitch('blue');
+            renderPitch('red');
+            renderList('blueList', 'blue');
+            renderList('redList', 'red');
+            renderList('signedUpList', 'signedup');
+            renderList('membersList', 'members');
+            updateStats();
+        }
+
+        async function exportImage() {
+            const exportDiv = document.createElement('div');
+            exportDiv.className = 'export-container';
+            exportDiv.style.position = 'absolute';
+            exportDiv.style.left = '-9999px';
+            exportDiv.style.top = '0';
+
+            const blueSection = document.querySelector('.team-section:not(.red)').cloneNode(true);
+            const redSection = document.querySelector('.team-section.red').cloneNode(true);
+
+            blueSection.querySelector('.team-list')?.remove();
+            redSection.querySelector('.team-list')?.remove();
+
+            exportDiv.appendChild(blueSection);
+            exportDiv.appendChild(redSection);
+            document.body.appendChild(exportDiv);
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            try {
+                const canvas = await html2canvas(exportDiv, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true
+                });
+
+                const link = document.createElement('a');
+                link.download = 'team-formations.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (err) {
+                console.error('Export failed:', err);
+                alert('Export failed. Please try again.');
+            } finally {
+                document.body.removeChild(exportDiv);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            setupDropZone(document.getElementById('membersList'), 'members');
+            setupDropZone(document.getElementById('signedUpList'), 'signedup');
+            setupDropZone(document.getElementById('blueList'), 'blue');
+            setupDropZone(document.getElementById('redList'), 'red');
+            setupDropZone(document.getElementById('bluePitch'), 'blue');
+            setupDropZone(document.getElementById('redPitch'), 'red');
+
+            // Enter key to add member
+            document.getElementById('newMemberName').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') addMember();
+            });
+
+            render();
+        });
+    </script>
+</body>
+</html>
