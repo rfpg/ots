@@ -914,6 +914,14 @@
                 e.preventDefault();
                 openEditModal(player);
             });
+
+            // Double-click to move from members to signed up
+            element.addEventListener('dblclick', () => {
+                if (player.team === 'members') {
+                    player.team = 'signedup';
+                    render();
+                }
+            });
         }
 
         function setupDropZone(element, team) {
