@@ -929,6 +929,7 @@
                 draggedPlayer = player;
                 element.classList.add('dragging');
                 e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', player.id.toString());
             });
 
             element.addEventListener('dragend', () => {
@@ -1016,27 +1017,27 @@
         }
 
         function setupPlayerDropTarget(element, targetPlayer) {
-            let pendingSwapPlayer = null;
-
             element.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
                     element.classList.add('drop-target');
-                    pendingSwapPlayer = draggedPlayer;
                 }
             });
 
             element.addEventListener('dragleave', () => {
                 element.classList.remove('drop-target');
-                pendingSwapPlayer = null;
             });
 
             element.addEventListener('drop', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 element.classList.remove('drop-target');
-                const playerToSwap = pendingSwapPlayer || draggedPlayer;
+
+                // Get the dragged player ID from dataTransfer
+                const draggedId = parseInt(e.dataTransfer.getData('text/plain'));
+                const playerToSwap = players.find(p => p.id === draggedId);
+
                 if (playerToSwap && playerToSwap.id !== targetPlayer.id) {
                     // Swap teams between the two players
                     const tempTeam = playerToSwap.team;
@@ -1044,7 +1045,6 @@
                     targetPlayer.team = tempTeam;
                     render();
                 }
-                pendingSwapPlayer = null;
             });
         }
 
