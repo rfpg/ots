@@ -312,6 +312,29 @@
             transform: scale(1.05);
         }
 
+        .player-chip.selected {
+            background: #dbeafe;
+            border-color: #3b82f6;
+        }
+
+        .selection-controls {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .selection-controls button {
+            padding: 4px 10px;
+            font-size: 11px;
+        }
+
+        .selection-count {
+            font-size: 11px;
+            color: #6b7280;
+            margin-left: auto;
+            align-self: center;
+        }
+
         /* Player lists */
         .player-list {
             display: flex;
@@ -619,6 +642,12 @@
                     </select>
                     <button class="small" onclick="addMember()">+</button>
                 </div>
+                <div class="selection-controls">
+                    <button class="small" onclick="moveSelectedToSignedUp()">Sign Up →</button>
+                    <button class="small" onclick="selectAllInList('members')">All</button>
+                    <button class="small" onclick="clearSelection()">Clear</button>
+                    <span class="selection-count" id="membersSelectionCount"></span>
+                </div>
                 <div class="player-list" id="membersList" data-team="members"></div>
             </div>
 
@@ -642,6 +671,12 @@
                 <div class="section-header">
                     <h2>Signed Up</h2>
                     <span class="count" id="signedUpCount"></span>
+                </div>
+                <div class="selection-controls">
+                    <button class="small" onclick="moveSelectedToMembers()">← Remove</button>
+                    <button class="small" onclick="selectAllInList('signedup')">All</button>
+                    <button class="small" onclick="clearSelection()">Clear</button>
+                    <span class="selection-count" id="signedUpSelectionCount"></span>
                 </div>
                 <div class="player-list" id="signedUpList" data-team="signedup"></div>
             </div>
@@ -745,6 +780,9 @@
         let editingPlayerId = null;
         // Store custom positions for players on the pitch (playerId -> {x, y})
         const customPositions = {};
+        // Selection state
+        const selectedPlayers = new Set();
+        let lastClickedPlayerId = null;
 
         // Modal functions
         function openEditModal(player) {
@@ -993,7 +1031,7 @@
 
         function createPlayerChip(player) {
             const chip = document.createElement('div');
-            chip.className = 'player-chip';
+            chip.className = 'player-chip' + (selectedPlayers.has(player.id) ? ' selected' : '');
             chip.draggable = true;
             chip.dataset.playerId = player.id;
             chip.innerHTML = `
@@ -1003,7 +1041,98 @@
             `;
             setupDragEvents(chip, player);
             setupPlayerDropTarget(chip, player);
+            setupSelectionClick(chip, player);
             return chip;
+        }
+
+        function setupSelectionClick(chip, player) {
+            chip.addEventListener('click', (e) => {
+                // Only handle selection for members and signedup lists
+                if (player.team !== 'members' && player.team !== 'signedup') return;
+
+                if (e.shiftKey && lastClickedPlayerId !== null) {
+                    // Shift-click: select range
+                    const teamPlayers = getTeamPlayers(player.team);
+                    const lastIdx = teamPlayers.findIndex(p => p.id === lastClickedPlayerId);
+                    const currentIdx = teamPlayers.findIndex(p => p.id === player.id);
+
+                    if (lastIdx !== -1 && currentIdx !== -1) {
+                        const start = Math.min(lastIdx, currentIdx);
+                        const end = Math.max(lastIdx, currentIdx);
+                        for (let i = start; i <= end; i++) {
+                            selectedPlayers.add(teamPlayers[i].id);
+                        }
+                    }
+                } else if (e.ctrlKey || e.metaKey) {
+                    // Ctrl/Cmd-click: toggle selection
+                    if (selectedPlayers.has(player.id)) {
+                        selectedPlayers.delete(player.id);
+                    } else {
+                        selectedPlayers.add(player.id);
+                    }
+                } else {
+                    // Regular click: select only this one
+                    selectedPlayers.clear();
+                    selectedPlayers.add(player.id);
+                }
+
+                lastClickedPlayerId = player.id;
+                updateSelectionUI();
+            });
+        }
+
+        function updateSelectionUI() {
+            // Update chip visual state
+            document.querySelectorAll('.player-chip').forEach(chip => {
+                const id = parseInt(chip.dataset.playerId);
+                if (selectedPlayers.has(id)) {
+                    chip.classList.add('selected');
+                } else {
+                    chip.classList.remove('selected');
+                }
+            });
+
+            // Update selection counts
+            const membersSelected = getTeamPlayers('members').filter(p => selectedPlayers.has(p.id)).length;
+            const signedUpSelected = getTeamPlayers('signedup').filter(p => selectedPlayers.has(p.id)).length;
+
+            const membersCountEl = document.getElementById('membersSelectionCount');
+            const signedUpCountEl = document.getElementById('signedUpSelectionCount');
+
+            if (membersCountEl) {
+                membersCountEl.textContent = membersSelected > 0 ? `${membersSelected} selected` : '';
+            }
+            if (signedUpCountEl) {
+                signedUpCountEl.textContent = signedUpSelected > 0 ? `${signedUpSelected} selected` : '';
+            }
+        }
+
+        function selectAllInList(team) {
+            const teamPlayers = getTeamPlayers(team);
+            teamPlayers.forEach(p => selectedPlayers.add(p.id));
+            updateSelectionUI();
+        }
+
+        function clearSelection() {
+            selectedPlayers.clear();
+            lastClickedPlayerId = null;
+            updateSelectionUI();
+        }
+
+        function moveSelectedToSignedUp() {
+            const membersToMove = getTeamPlayers('members').filter(p => selectedPlayers.has(p.id));
+            membersToMove.forEach(p => p.team = 'signedup');
+            selectedPlayers.clear();
+            lastClickedPlayerId = null;
+            render();
+        }
+
+        function moveSelectedToMembers() {
+            const signedUpToMove = getTeamPlayers('signedup').filter(p => selectedPlayers.has(p.id));
+            signedUpToMove.forEach(p => p.team = 'members');
+            selectedPlayers.clear();
+            lastClickedPlayerId = null;
+            render();
         }
 
         function setupDragEvents(element, player) {
@@ -1213,6 +1342,7 @@
             renderList('signedUpList', 'signedup');
             renderList('membersList', 'members');
             updateStats();
+            updateSelectionUI();
         }
 
         async function exportImage() {
