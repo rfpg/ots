@@ -1020,18 +1020,21 @@
             element.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
                     element.classList.add('drop-target');
                 }
             });
 
-            element.addEventListener('dragleave', () => {
+            element.addEventListener('dragleave', (e) => {
+                e.stopPropagation();
                 element.classList.remove('drop-target');
             });
 
             element.addEventListener('drop', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                e.stopImmediatePropagation();
                 element.classList.remove('drop-target');
 
                 // Get the dragged player ID from dataTransfer
@@ -1043,6 +1046,10 @@
                     const tempTeam = playerToSwap.team;
                     playerToSwap.team = targetPlayer.team;
                     targetPlayer.team = tempTeam;
+
+                    // Clear draggedPlayer to prevent drop zone handler from firing
+                    draggedPlayer = null;
+
                     render();
                 }
             });
