@@ -1017,24 +1017,23 @@
         }
 
         function setupPlayerDropTarget(element, targetPlayer) {
+            // Use capture phase to handle events before they reach the pitch
             element.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
                 if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
                     element.classList.add('drop-target');
                 }
-            });
+            }, true);
 
             element.addEventListener('dragleave', (e) => {
                 e.stopPropagation();
                 element.classList.remove('drop-target');
-            });
+            }, true);
 
             element.addEventListener('drop', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                e.stopImmediatePropagation();
                 element.classList.remove('drop-target');
 
                 // Get the dragged player ID from dataTransfer
@@ -1052,7 +1051,7 @@
 
                     render();
                 }
-            });
+            }, true);
         }
 
         function addMember() {
