@@ -257,6 +257,17 @@
             transform: translate(-50%, -50%);
             text-align: center;
             z-index: 10;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .player-marker:active {
+            cursor: grabbing;
+        }
+
+        .player-marker.dragging {
+            z-index: 100;
+            opacity: 0.8;
         }
 
         .player-marker .avatar {
@@ -561,12 +572,13 @@
 <body>
     <div class="container">
         <h1>Old Town Pickup Soccer</h1>
-        <p class="organizers">Organizers: <img src="https://flagcdn.com/w20/ie.png" alt="IE" class="org-flag"> Ricky, <img src="https://flagcdn.com/w20/gb-sct.png" alt="SCT" class="org-flag"> Ben, <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Evan, <img src="https://flagcdn.com/w20/pl.png" alt="PL" class="org-flag"> Tom W & <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Tom M</p>
+        <p class="organizers">Organizers: <img src="https://flagcdn.com/w20/ie.png" alt="IE" class="org-flag"> Ricky, <img src="https://flagcdn.com/w20/gb-sct.png" alt="SCT" class="org-flag"> Ben, <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Evan, <img src="https://flagcdn.com/w20/pl.png" alt="PL" class="org-flag"> Tom W & <img src="https://flagpedia.net/data/us/w580/nc.png" alt="NC" class="org-flag"> Tom M</p>
 
         <div class="controls">
             <button class="primary" onclick="shuffleTeams()">Shuffle & Balance Teams</button>
             <button onclick="resetSignedUp()">Reset Teams</button>
             <button onclick="exportImage()">Download Image</button>
+            <button onclick="exportSpreadsheet()">Export CSV</button>
             <div class="formation-select">
                 <label>Formation:</label>
                 <select id="formationSelect" onchange="render()">
@@ -594,9 +606,11 @@
                     <input type="text" id="newMemberName" placeholder="Name">
                     <select id="newMemberCountry">
                         <option value="us">US</option>
+                        <option value="us-nc">NC</option>
                         <option value="ie">IE</option>
                         <option value="mx">MX</option>
                         <option value="ec">EC</option>
+                        <option value="sv">SV</option>
                         <option value="tr">TR</option>
                         <option value="al">AL</option>
                         <option value="fr">FR</option>
@@ -669,8 +683,13 @@
     </div>
 
     <script>
-        // Flag images from flagcdn.com
+        // Flag images from flagcdn.com (and flagpedia.net for US states)
         function getFlag(country) {
+            // US state flags use format "us-xx" (e.g., us-nc for North Carolina)
+            if (country.startsWith('us-')) {
+                const state = country.substring(3);
+                return `<img src="https://flagpedia.net/data/us/w580/${state}.png" alt="${country}">`;
+            }
             return `<img src="https://flagcdn.com/w40/${country}.png" alt="${country}">`;
         }
 
@@ -689,7 +708,7 @@
         // All members with default 5/5 ratings
         const players = [
             { id: 1, name: 'Andrew', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 2, name: 'Tom M', country: 'us', off: 5, def: 5, team: 'members' },
+            { id: 2, name: 'Tom M', country: 'us-nc', off: 5, def: 5, team: 'members' },
             { id: 3, name: 'Quentin', country: 'fr', off: 5, def: 5, team: 'members' },
             { id: 4, name: 'Ricky', country: 'ie', off: 5, def: 5, team: 'members' },
             { id: 5, name: 'Femi', country: 'us', off: 5, def: 5, team: 'members' },
@@ -724,6 +743,8 @@
         let nextId = 32;
         let draggedPlayer = null;
         let editingPlayerId = null;
+        // Store custom positions for players on the pitch (playerId -> {x, y})
+        const customPositions = {};
 
         // Modal functions
         function openEditModal(player) {
@@ -856,18 +877,102 @@
             const positioned = assignPositions(teamPlayers);
 
             positioned.forEach(player => {
-                const coords = getPositionCoordinates(player.position, player.posIndex, 0, team);
+                // Use custom position if available, otherwise use formation position
+                const posKey = `${team}-${player.id}`;
+                let coords;
+                if (customPositions[posKey]) {
+                    coords = customPositions[posKey];
+                } else {
+                    coords = getPositionCoordinates(player.position, player.posIndex, 0, team);
+                }
+
                 const marker = document.createElement('div');
                 marker.className = `player-marker ${team}`;
                 marker.style.left = `${coords.x}%`;
                 marker.style.top = `${coords.y}%`;
+                marker.dataset.playerId = player.id;
                 marker.innerHTML = `
                     <div class="avatar">${getFlag(player.country)}</div>
                     <div class="name">${player.name}</div>
                 `;
+
+                // Make marker draggable on the pitch
+                setupPitchDrag(marker, pitch, player, team);
                 pitch.appendChild(marker);
             });
         }
+
+        // Global pitch drag state
+        let pitchDragState = null;
+
+        function setupPitchDrag(marker, pitch, player, team) {
+            const onStart = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                pitchDragState = { marker, pitch, player, team };
+                marker.classList.add('dragging');
+            };
+
+            marker.addEventListener('mousedown', onStart);
+            marker.addEventListener('touchstart', onStart, { passive: false });
+        }
+
+        // Global handlers for pitch dragging
+        document.addEventListener('mousemove', (e) => {
+            if (!pitchDragState) return;
+            const { marker, pitch } = pitchDragState;
+            const rect = pitch.getBoundingClientRect();
+
+            let x = ((e.clientX - rect.left) / rect.width) * 100;
+            let y = ((e.clientY - rect.top) / rect.height) * 100;
+            x = Math.max(5, Math.min(95, x));
+            y = Math.max(5, Math.min(95, y));
+
+            marker.style.left = `${x}%`;
+            marker.style.top = `${y}%`;
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (!pitchDragState) return;
+            e.preventDefault();
+            const { marker, pitch } = pitchDragState;
+            const rect = pitch.getBoundingClientRect();
+            const touch = e.touches[0];
+
+            let x = ((touch.clientX - rect.left) / rect.width) * 100;
+            let y = ((touch.clientY - rect.top) / rect.height) * 100;
+            x = Math.max(5, Math.min(95, x));
+            y = Math.max(5, Math.min(95, y));
+
+            marker.style.left = `${x}%`;
+            marker.style.top = `${y}%`;
+        }, { passive: false });
+
+        document.addEventListener('mouseup', () => {
+            if (!pitchDragState) return;
+            const { marker, player, team } = pitchDragState;
+            marker.classList.remove('dragging');
+
+            const posKey = `${team}-${player.id}`;
+            customPositions[posKey] = {
+                x: parseFloat(marker.style.left),
+                y: parseFloat(marker.style.top)
+            };
+            pitchDragState = null;
+        });
+
+        document.addEventListener('touchend', () => {
+            if (!pitchDragState) return;
+            const { marker, player, team } = pitchDragState;
+            marker.classList.remove('dragging');
+
+            const posKey = `${team}-${player.id}`;
+            customPositions[posKey] = {
+                x: parseFloat(marker.style.left),
+                y: parseFloat(marker.style.top)
+            };
+            pitchDragState = null;
+        });
 
         function renderList(containerId, team) {
             const container = document.getElementById(containerId);
@@ -1083,6 +1188,8 @@
                     redTotal += total;
                 }
             });
+            // Clear custom positions when shuffling
+            Object.keys(customPositions).forEach(key => delete customPositions[key]);
             render();
         }
 
@@ -1093,6 +1200,8 @@
                     p.team = 'signedup';
                 }
             });
+            // Clear custom positions when resetting
+            Object.keys(customPositions).forEach(key => delete customPositions[key]);
             render();
         }
 
@@ -1143,6 +1252,41 @@
             } finally {
                 document.body.removeChild(exportDiv);
             }
+        }
+
+        function exportSpreadsheet() {
+            const formation = getFormation();
+            const blueTeam = getTeamPlayers('blue');
+            const redTeam = getTeamPlayers('red');
+            const signedUp = getTeamPlayers('signedup');
+
+            // Build CSV content
+            let csv = 'Team,Position,Name,Country,Offensive,Defensive\n';
+
+            // Add Blue team with positions
+            const bluePositioned = assignPositions(blueTeam);
+            bluePositioned.forEach(p => {
+                csv += `Blue,${p.position.toUpperCase()},${p.name},${p.country},${p.off},${p.def}\n`;
+            });
+
+            // Add Red team with positions
+            const redPositioned = assignPositions(redTeam);
+            redPositioned.forEach(p => {
+                csv += `Red,${p.position.toUpperCase()},${p.name},${p.country},${p.off},${p.def}\n`;
+            });
+
+            // Add signed up players
+            signedUp.forEach(p => {
+                csv += `Signed Up,-,${p.name},${p.country},${p.off},${p.def}\n`;
+            });
+
+            // Download the CSV
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const link = document.createElement('a');
+            link.download = 'team-rosters.csv';
+            link.href = URL.createObjectURL(blob);
+            link.click();
+            URL.revokeObjectURL(link.href);
         }
 
         // Initialize
