@@ -1016,29 +1016,35 @@
         }
 
         function setupPlayerDropTarget(element, targetPlayer) {
+            let pendingSwapPlayer = null;
+
             element.addEventListener('dragover', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
                     element.classList.add('drop-target');
+                    pendingSwapPlayer = draggedPlayer;
                 }
             });
 
             element.addEventListener('dragleave', () => {
                 element.classList.remove('drop-target');
+                pendingSwapPlayer = null;
             });
 
             element.addEventListener('drop', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 element.classList.remove('drop-target');
-                if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
+                const playerToSwap = pendingSwapPlayer || draggedPlayer;
+                if (playerToSwap && playerToSwap.id !== targetPlayer.id) {
                     // Swap teams between the two players
-                    const tempTeam = draggedPlayer.team;
-                    draggedPlayer.team = targetPlayer.team;
+                    const tempTeam = playerToSwap.team;
+                    playerToSwap.team = targetPlayer.team;
                     targetPlayer.team = tempTeam;
                     render();
                 }
+                pendingSwapPlayer = null;
             });
         }
 
