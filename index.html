@@ -257,11 +257,6 @@
             transform: translate(-50%, -50%);
             text-align: center;
             z-index: 10;
-            cursor: grab;
-        }
-
-        .player-marker:active {
-            cursor: grabbing;
         }
 
         .player-marker .avatar {
@@ -298,16 +293,6 @@
             white-space: nowrap;
             letter-spacing: 0.01em;
             color: #fff;
-        }
-
-        .player-marker.drop-target {
-            transform: translate(-50%, -50%) scale(1.2);
-            z-index: 100;
-        }
-
-        .player-marker.drop-target .avatar {
-            border-color: #fbbf24;
-            box-shadow: 0 0 12px rgba(251, 191, 36, 0.8);
         }
 
         .player-chip.drop-target {
@@ -836,34 +821,30 @@
 
         function assignPositions(teamPlayers) {
             const formation = FORMATIONS[getFormation()];
-            const sorted = [...teamPlayers].sort((a, b) => (b.def - b.off) - (a.def - a.off));
-
+            // Use list order directly - first player is GK, then DEF, MID, FWD
             const positions = [];
             let idx = 0;
 
-            // GK
-            if (sorted.length > 0) {
-                positions.push({ ...sorted[idx++], position: 'gk', posIndex: 0 });
+            // GK (first player)
+            if (teamPlayers.length > 0) {
+                positions.push({ ...teamPlayers[idx++], position: 'gk', posIndex: 0 });
             }
 
             // Defenders
-            for (let i = 0; i < formation.def && idx < sorted.length; i++) {
-                positions.push({ ...sorted[idx++], position: 'def', posIndex: i });
+            for (let i = 0; i < formation.def && idx < teamPlayers.length; i++) {
+                positions.push({ ...teamPlayers[idx++], position: 'def', posIndex: i });
             }
 
-            // Get forwards from the end (most offensive)
-            const forwards = [];
-            for (let i = 0; i < formation.fwd && sorted.length - 1 - i >= idx; i++) {
-                forwards.unshift({ ...sorted[sorted.length - 1 - i], position: 'fwd', posIndex: formation.fwd - 1 - i });
+            // Midfielders
+            for (let i = 0; i < formation.mid && idx < teamPlayers.length; i++) {
+                positions.push({ ...teamPlayers[idx++], position: 'mid', posIndex: i });
             }
 
-            // Midfielders (everyone in between)
-            const midEnd = sorted.length - forwards.length;
-            for (let i = idx; i < midEnd && (i - idx) < formation.mid; i++) {
-                positions.push({ ...sorted[i], position: 'mid', posIndex: i - idx });
+            // Forwards
+            for (let i = 0; i < formation.fwd && idx < teamPlayers.length; i++) {
+                positions.push({ ...teamPlayers[idx++], position: 'fwd', posIndex: i });
             }
 
-            positions.push(...forwards);
             return positions;
         }
 
@@ -880,14 +861,10 @@
                 marker.className = `player-marker ${team}`;
                 marker.style.left = `${coords.x}%`;
                 marker.style.top = `${coords.y}%`;
-                marker.draggable = true;
-                marker.dataset.playerId = player.id;
                 marker.innerHTML = `
                     <div class="avatar">${getFlag(player.country)}</div>
                     <div class="name">${player.name}</div>
                 `;
-                setupDragEvents(marker, player);
-                setupPlayerDropTarget(marker, player);
                 pitch.appendChild(marker);
             });
         }
@@ -1009,6 +986,12 @@
             element.addEventListener('drop', (e) => {
                 e.preventDefault();
                 element.classList.remove('drag-over');
+
+                // If dropped on a player chip, let the player handler deal with it
+                if (e.target.closest('.player-chip')) {
+                    return;
+                }
+
                 if (draggedPlayer) {
                     draggedPlayer.team = team;
                     render();
@@ -1017,41 +1000,45 @@
         }
 
         function setupPlayerDropTarget(element, targetPlayer) {
-            // Use capture phase to handle events before they reach the pitch
             element.addEventListener('dragover', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
+                e.stopImmediatePropagation();
                 if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
                     element.classList.add('drop-target');
                 }
-            }, true);
+            });
 
             element.addEventListener('dragleave', (e) => {
-                e.stopPropagation();
+                e.stopImmediatePropagation();
                 element.classList.remove('drop-target');
-            }, true);
+            });
 
             element.addEventListener('drop', (e) => {
                 e.preventDefault();
-                e.stopPropagation();
+                e.stopImmediatePropagation();
                 element.classList.remove('drop-target');
 
-                // Get the dragged player ID from dataTransfer
                 const draggedId = parseInt(e.dataTransfer.getData('text/plain'));
                 const playerToSwap = players.find(p => p.id === draggedId);
 
                 if (playerToSwap && playerToSwap.id !== targetPlayer.id) {
-                    // Swap teams between the two players
-                    const tempTeam = playerToSwap.team;
-                    playerToSwap.team = targetPlayer.team;
-                    targetPlayer.team = tempTeam;
+                    if (playerToSwap.team === targetPlayer.team) {
+                        // Same team - reorder by swapping positions in the array
+                        const draggedIdx = players.indexOf(playerToSwap);
+                        const targetIdx = players.indexOf(targetPlayer);
+                        players.splice(draggedIdx, 1);
+                        players.splice(targetIdx, 0, playerToSwap);
+                    } else {
+                        // Different teams - swap teams between the two players
+                        const tempTeam = playerToSwap.team;
+                        playerToSwap.team = targetPlayer.team;
+                        targetPlayer.team = tempTeam;
+                    }
 
-                    // Clear draggedPlayer to prevent drop zone handler from firing
                     draggedPlayer = null;
-
                     render();
                 }
-            }, true);
+            });
         }
 
         function addMember() {
@@ -1164,8 +1151,6 @@
             setupDropZone(document.getElementById('signedUpList'), 'signedup');
             setupDropZone(document.getElementById('blueList'), 'blue');
             setupDropZone(document.getElementById('redList'), 'red');
-            setupDropZone(document.getElementById('bluePitch'), 'blue');
-            setupDropZone(document.getElementById('redPitch'), 'red');
 
             // Enter key to add member
             document.getElementById('newMemberName').addEventListener('keypress', (e) => {

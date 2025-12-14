@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nAdd Old Town Pickup Soccer team maker app\n\nSingle-page web app for organizing pickup soccer teams with:\n- 28 members pool with drag-and-drop interface\n- Blue and Red team formation display\n- Player ratings (OFF/DEF) with right-click editing\n- Auto-balance teams based on ratings\n- Multiple formation options (4-4-2, 4-3-3, 7v7, 5v5, etc.)\n- Export formations as downloadable PNG\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git push:*)",
+      "Bash(gh api:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}
