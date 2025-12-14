@@ -300,6 +300,22 @@
             color: #fff;
         }
 
+        .player-marker.drop-target {
+            transform: translate(-50%, -50%) scale(1.2);
+            z-index: 100;
+        }
+
+        .player-marker.drop-target .avatar {
+            border-color: #fbbf24;
+            box-shadow: 0 0 12px rgba(251, 191, 36, 0.8);
+        }
+
+        .player-chip.drop-target {
+            background: #fef3c7;
+            border-color: #fbbf24;
+            transform: scale(1.05);
+        }
+
         /* Player lists */
         .player-list {
             display: flex;
@@ -871,6 +887,7 @@
                     <div class="name">${player.name}</div>
                 `;
                 setupDragEvents(marker, player);
+                setupPlayerDropTarget(marker, player);
                 pitch.appendChild(marker);
             });
         }
@@ -903,6 +920,7 @@
                 <span class="ratings">${player.off}/${player.def}</span>
             `;
             setupDragEvents(chip, player);
+            setupPlayerDropTarget(chip, player);
             return chip;
         }
 
@@ -992,6 +1010,33 @@
                 element.classList.remove('drag-over');
                 if (draggedPlayer) {
                     draggedPlayer.team = team;
+                    render();
+                }
+            });
+        }
+
+        function setupPlayerDropTarget(element, targetPlayer) {
+            element.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
+                    element.classList.add('drop-target');
+                }
+            });
+
+            element.addEventListener('dragleave', () => {
+                element.classList.remove('drop-target');
+            });
+
+            element.addEventListener('drop', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                element.classList.remove('drop-target');
+                if (draggedPlayer && draggedPlayer.id !== targetPlayer.id) {
+                    // Swap teams between the two players
+                    const tempTeam = draggedPlayer.team;
+                    draggedPlayer.team = targetPlayer.team;
+                    targetPlayer.team = tempTeam;
                     render();
                 }
             });
