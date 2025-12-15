@@ -1371,28 +1371,64 @@
                 }
             });
 
-            // Sort each team by position suitability (def-heavy to off-heavy)
-            // High DEF players first (GK, DEF), balanced in middle (MID), high OFF players last (FWD)
-            const sortByPosition = (a, b) => {
-                const aDiff = a.def - a.off;
-                const bDiff = b.def - b.off;
+            // Assign positions by selecting best players for each role
+            const formation = FORMATIONS[getFormation()];
 
-                // Primary: sort by difference (defensive first)
-                if (bDiff !== aDiff) {
-                    return bDiff - aDiff;
+            // Create a pool of unassigned players
+            const sortedBlue = [];
+            const sortedRed = [];
+
+            [bluePlayers, redPlayers].forEach((teamPlayers, teamIdx) => {
+                const pool = [...teamPlayers];
+                const assigned = [];
+
+                // 1. Assign forwards - top offensive players (excluding balanced players)
+                const byOffense = [...pool]
+                    .filter(p => p.off - p.def >= 2) // Only clearly offensive players
+                    .sort((a, b) => b.off - a.off);
+                for (let i = 0; i < formation.fwd && byOffense.length > 0; i++) {
+                    const player = byOffense.shift();
+                    assigned.push(player);
+                    pool.splice(pool.indexOf(player), 1);
                 }
 
-                // Secondary: for same difference, use relevant stat
-                // Defensive players: prefer higher DEF
-                // Offensive players: prefer higher OFF
-                if (aDiff > 0) {
-                    return b.def - a.def;
+                // 2. Assign defenders - top defensive players from remaining (excluding balanced)
+                const byDefense = [...pool]
+                    .filter(p => p.def - p.off >= 2) // Only clearly defensive players
+                    .sort((a, b) => b.def - a.def);
+                for (let i = 0; i < formation.def && byDefense.length > 0; i++) {
+                    const player = byDefense.shift();
+                    assigned.push(player);
+                    pool.splice(pool.indexOf(player), 1);
+                }
+
+                // 3. Assign GK - first remaining player
+                if (pool.length > 0) {
+                    assigned.push(pool.shift());
+                }
+
+                // 4. Remaining players are midfielders (includes balanced players)
+                assigned.push(...pool);
+
+                // Reorder: GK, DEF, MID, FWD
+                const gk = assigned[formation.fwd + formation.def];
+                const def = assigned.slice(formation.fwd, formation.fwd + formation.def);
+                const mid = assigned.slice(formation.fwd + formation.def + 1);
+                const fwd = assigned.slice(0, formation.fwd);
+
+                const sorted = [gk, ...def, ...mid, ...fwd].filter(p => p);
+
+                if (teamIdx === 0) {
+                    sortedBlue.push(...sorted);
                 } else {
-                    return b.off - a.off;
+                    sortedRed.push(...sorted);
                 }
-            };
-            bluePlayers.sort(sortByPosition);
-            redPlayers.sort(sortByPosition);
+            });
+
+            bluePlayers.length = 0;
+            bluePlayers.push(...sortedBlue);
+            redPlayers.length = 0;
+            redPlayers.push(...sortedRed);
 
             // Update player teams
             bluePlayers.forEach(p => p.team = 'blue');
