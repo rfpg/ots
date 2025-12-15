@@ -740,42 +740,60 @@
             '1-2-1': { def: 1, mid: 2, fwd: 1 }
         };
 
-        // All members with default 5/5 ratings
-        const players = [
-            { id: 1, name: 'Andrew', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 2, name: 'Tom M', country: 'us-nc', off: 5, def: 5, team: 'members' },
-            { id: 3, name: 'Quentin', country: 'fr', off: 5, def: 5, team: 'members' },
-            { id: 4, name: 'Ricky', country: 'ie', off: 5, def: 5, team: 'members' },
-            { id: 5, name: 'Femi', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 6, name: 'Shane', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 7, name: 'Milton', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 8, name: 'Walter', country: 'mx', off: 5, def: 5, team: 'members' },
-            { id: 9, name: 'Blake', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 10, name: 'Safak', country: 'tr', off: 5, def: 5, team: 'members' },
-            { id: 11, name: 'Drew', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 12, name: 'Evan', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 13, name: 'Tom W', country: 'pl', off: 5, def: 5, team: 'members' },
-            { id: 14, name: 'Thomas', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 15, name: 'Klodi', country: 'al', off: 5, def: 5, team: 'members' },
-            { id: 16, name: 'Ryan', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 17, name: 'Edwin', country: 'mx', off: 5, def: 5, team: 'members' },
-            { id: 18, name: 'Abel', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 19, name: 'Victor', country: 'sv', off: 5, def: 5, team: 'members' },
-            { id: 20, name: 'James', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 21, name: 'Ben', country: 'gb-sct', off: 5, def: 5, team: 'members' },
-            { id: 22, name: 'Marcos', country: 'mx', off: 5, def: 5, team: 'members' },
-            { id: 23, name: 'John', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 24, name: 'Omar', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 25, name: 'Kirby', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 26, name: 'Justin', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 27, name: 'Daniel', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 28, name: 'Troy', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 29, name: 'Soren', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 30, name: 'Zane', country: 'us', off: 5, def: 5, team: 'members' },
-            { id: 31, name: 'Matthew', country: 'us', off: 5, def: 5, team: 'members' }
+        // Decode player ratings (encoded for confidentiality)
+        function decodeRating(encoded) {
+            try {
+                const decoded = atob(encoded);
+                const [off, def] = decoded.split(':').map(Number);
+                return { off, def };
+            } catch (e) {
+                return { off: 5, def: 5 };
+            }
+        }
+
+        // Player data with encoded ratings
+        const playersData = [
+            { id: 1, name: 'Andrew', country: 'us', r: 'NTo0', team: 'members' },
+            { id: 2, name: 'Tom M', country: 'us-nc', r: 'Nzo2', team: 'members' },
+            { id: 3, name: 'Quentin', country: 'fr', r: 'OTo1', team: 'members' },
+            { id: 4, name: 'Ricky', country: 'ie', r: 'ODo3', team: 'members' },
+            { id: 5, name: 'Femi', country: 'us', r: 'Nzo2', team: 'members' },
+            { id: 6, name: 'Shane', country: 'us', r: 'Njo1', team: 'members' },
+            { id: 7, name: 'Milton', country: 'us', r: 'Njo4', team: 'members' },
+            { id: 8, name: 'Walter', country: 'mx', r: 'Njo0', team: 'members' },
+            { id: 9, name: 'Blake', country: 'us', r: 'NTo0', team: 'members' },
+            { id: 10, name: 'Safak', country: 'tr', r: 'Njoz', team: 'members' },
+            { id: 11, name: 'Drew', country: 'us', r: 'Njo1', team: 'members' },
+            { id: 12, name: 'Evan', country: 'us', r: 'NDo3', team: 'members' },
+            { id: 13, name: 'Tom W', country: 'pl', r: 'Njo3', team: 'members' },
+            { id: 14, name: 'Thomas', country: 'us', r: 'ODo2', team: 'members' },
+            { id: 15, name: 'Klodi', country: 'al', r: 'ODo1', team: 'members' },
+            { id: 16, name: 'Ryan', country: 'us', r: 'ODo1', team: 'members' },
+            { id: 17, name: 'Edwin', country: 'mx', r: 'Nzo1', team: 'members' },
+            { id: 18, name: 'Abel', country: 'us', r: 'ODo3', team: 'members' },
+            { id: 19, name: 'Victor', country: 'sv', r: 'Nzo4', team: 'members' },
+            { id: 20, name: 'James', country: 'us', r: 'Nzo2', team: 'members' },
+            { id: 21, name: 'Ben', country: 'gb-sct', r: 'Nzo2', team: 'members' },
+            { id: 22, name: 'Marcos', country: 'mx', r: 'NTo1', team: 'members' },
+            { id: 23, name: 'John', country: 'us', r: 'NDo2', team: 'members' },
+            { id: 24, name: 'Omar', country: 'us', r: 'Nzo1', team: 'members' },
+            { id: 25, name: 'Kirby', country: 'us', r: 'Njo2', team: 'members' },
+            { id: 26, name: 'Justin', country: 'us', r: 'Nzo2', team: 'members' },
+            { id: 27, name: 'Daniel', country: 'us', r: 'ODo1', team: 'members' },
+            { id: 28, name: 'Troy', country: 'us', r: 'NTo1', team: 'members' },
+            { id: 29, name: 'Soren', country: 'us', r: 'Mzo3', team: 'members' },
+            { id: 30, name: 'Zane', country: 'us', r: 'ODo1', team: 'members' },
+            { id: 31, name: 'Matthew', country: 'us', r: 'Njo1', team: 'members' },
+            { id: 32, name: 'Shawn', country: 'us', r: 'Njo4', team: 'members' }
         ];
 
-        let nextId = 32;
+        // Decode ratings on initialization
+        const players = playersData.map(p => {
+            const ratings = decodeRating(p.r);
+            return { ...p, off: ratings.off, def: ratings.def };
+        });
+
+        let nextId = 33;
         let draggedPlayer = null;
         let editingPlayerId = null;
         // Store custom positions for players on the pitch (playerId -> {x, y})
@@ -839,10 +857,8 @@
             const membersCount = getTeamPlayers('members').length;
             const signedUpCount = getTeamPlayers('signedup').length;
 
-            document.getElementById('blueStats').textContent =
-                `${blueStats.count}p | O:${blueStats.off} D:${blueStats.def}`;
-            document.getElementById('redStats').textContent =
-                `${redStats.count}p | O:${redStats.off} D:${redStats.def}`;
+            document.getElementById('blueStats').textContent = `${blueStats.count}p`;
+            document.getElementById('redStats').textContent = `${redStats.count}p`;
             document.getElementById('membersCount').textContent = `${membersCount}`;
             document.getElementById('signedUpCount').textContent = `${signedUpCount}`;
         }
@@ -1037,7 +1053,6 @@
             chip.innerHTML = `
                 <div class="flag">${getFlag(player.country)}</div>
                 <span class="name">${player.name}</span>
-                <span class="ratings">${player.off}/${player.def}</span>
             `;
             setupDragEvents(chip, player);
             setupPlayerDropTarget(chip, player);
@@ -1146,56 +1161,6 @@
             element.addEventListener('dragend', () => {
                 element.classList.remove('dragging');
                 draggedPlayer = null;
-            });
-
-            // Right-click to edit
-            element.addEventListener('contextmenu', (e) => {
-                e.preventDefault();
-                openEditModal(player);
-            });
-
-            // Long press to edit, tap to move (mobile)
-            let longPressTimer;
-            let touchStartPos = null;
-            let longPressTriggered = false;
-            element.addEventListener('touchstart', (e) => {
-                touchStartPos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                longPressTriggered = false;
-                longPressTimer = setTimeout(() => {
-                    longPressTriggered = true;
-                    openEditModal(player);
-                }, 500);
-            });
-
-            element.addEventListener('touchend', (e) => {
-                clearTimeout(longPressTimer);
-                // Single tap to move between members and signedup
-                if (!longPressTriggered && touchStartPos) {
-                    const dx = e.changedTouches[0].clientX - touchStartPos.x;
-                    const dy = e.changedTouches[0].clientY - touchStartPos.y;
-                    // Only trigger if didn't move much (it's a tap, not a drag)
-                    if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
-                        if (player.team === 'members') {
-                            player.team = 'signedup';
-                            render();
-                        } else if (player.team === 'signedup') {
-                            player.team = 'members';
-                            render();
-                        }
-                    }
-                }
-                touchStartPos = null;
-            });
-
-            element.addEventListener('touchmove', (e) => {
-                if (touchStartPos) {
-                    const dx = e.touches[0].clientX - touchStartPos.x;
-                    const dy = e.touches[0].clientY - touchStartPos.y;
-                    // Cancel long press if moved more than 10px (user is dragging)
-                    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-                        clearTimeout(longPressTimer);
-                    }
-                }
             });
 
             // Double-click to move from members to signed up
