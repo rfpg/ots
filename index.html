@@ -740,51 +740,70 @@
             '1-2-1': { def: 1, mid: 2, fwd: 1 }
         };
 
-        // Decode player ratings (encoded for confidentiality)
+        // Secret key for rating encryption
+        const SECRET_KEY = 'fingerspitzengefuhl';
+
+        // Encode player ratings with XOR cipher
+        function encodeRating(off, def) {
+            const plaintext = `${off}:${def}`;
+            let encrypted = '';
+            for (let i = 0; i < plaintext.length; i++) {
+                const charCode = plaintext.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                encrypted += String.fromCharCode(charCode);
+            }
+            return btoa(encrypted);
+        }
+
+        // Decode player ratings with XOR cipher
         function decodeRating(encoded) {
             try {
-                const decoded = atob(encoded);
-                const [off, def] = decoded.split(':').map(Number);
+                const encrypted = atob(encoded);
+                let plaintext = '';
+                for (let i = 0; i < encrypted.length; i++) {
+                    const charCode = encrypted.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                    plaintext += String.fromCharCode(charCode);
+                }
+                const [off, def] = plaintext.split(':').map(Number);
                 return { off, def };
             } catch (e) {
                 return { off: 5, def: 5 };
             }
         }
 
-        // Player data with encoded ratings
+        // Player data with encrypted ratings (XOR cipher with secret key)
         const playersData = [
-            { id: 1, name: 'Andrew', country: 'us', r: 'NTo0', team: 'members' },
-            { id: 2, name: 'Tom M', country: 'us-nc', r: 'Nzo2', team: 'members' },
-            { id: 3, name: 'Quentin', country: 'fr', r: 'OTo1', team: 'members' },
-            { id: 4, name: 'Ricky', country: 'ie', r: 'ODo3', team: 'members' },
-            { id: 5, name: 'Femi', country: 'us', r: 'Nzo2', team: 'members' },
-            { id: 6, name: 'Shane', country: 'us', r: 'Njo1', team: 'members' },
-            { id: 7, name: 'Milton', country: 'us', r: 'Njo4', team: 'members' },
-            { id: 8, name: 'Walter', country: 'mx', r: 'Njo0', team: 'members' },
-            { id: 9, name: 'Blake', country: 'us', r: 'NTo0', team: 'members' },
-            { id: 10, name: 'Safak', country: 'tr', r: 'Njoz', team: 'members' },
-            { id: 11, name: 'Drew', country: 'us', r: 'Njo1', team: 'members' },
-            { id: 12, name: 'Evan', country: 'us', r: 'NDo3', team: 'members' },
-            { id: 13, name: 'Tom W', country: 'pl', r: 'Njo3', team: 'members' },
-            { id: 14, name: 'Thomas', country: 'us', r: 'ODo2', team: 'members' },
-            { id: 15, name: 'Klodi', country: 'al', r: 'ODo1', team: 'members' },
-            { id: 16, name: 'Ryan', country: 'us', r: 'ODo1', team: 'members' },
-            { id: 17, name: 'Edwin', country: 'mx', r: 'Nzo1', team: 'members' },
-            { id: 18, name: 'Abel', country: 'us', r: 'ODo3', team: 'members' },
-            { id: 19, name: 'Victor', country: 'sv', r: 'ODo3', team: 'members' },
-            { id: 20, name: 'James', country: 'us', r: 'Nzo2', team: 'members' },
-            { id: 21, name: 'Ben', country: 'gb-sct', r: 'Nzo2', team: 'members' },
-            { id: 22, name: 'Marcos', country: 'mx', r: 'NTo1', team: 'members' },
-            { id: 23, name: 'John', country: 'us', r: 'NDo2', team: 'members' },
-            { id: 24, name: 'Omar', country: 'us', r: 'Nzo1', team: 'members' },
-            { id: 25, name: 'Kirby', country: 'us', r: 'Njo2', team: 'members' },
-            { id: 26, name: 'Justin', country: 'us', r: 'Nzo2', team: 'members' },
-            { id: 27, name: 'Daniel', country: 'us', r: 'ODo1', team: 'members' },
-            { id: 28, name: 'Troy', country: 'us', r: 'NTo1', team: 'members' },
-            { id: 29, name: 'Soren', country: 'us', r: 'Mzo3', team: 'members' },
-            { id: 30, name: 'Zane', country: 'us', r: 'ODo1', team: 'members' },
-            { id: 31, name: 'Matthew', country: 'us', r: 'Njo1', team: 'members' },
-            { id: 32, name: 'Shawn', country: 'us', r: 'Njo4', team: 'members' }
+            { id: 1, name: 'Andrew', country: 'us', r: 'U1Na', team: 'members' },
+            { id: 2, name: 'Tom M', country: 'us-nc', r: 'UVNY', team: 'members' },
+            { id: 3, name: 'Quentin', country: 'fr', r: 'X1Nb', team: 'members' },
+            { id: 4, name: 'Ricky', country: 'ie', r: 'XlNZ', team: 'members' },
+            { id: 5, name: 'Femi', country: 'us', r: 'UVNY', team: 'members' },
+            { id: 6, name: 'Shane', country: 'us', r: 'UFNb', team: 'members' },
+            { id: 7, name: 'Milton', country: 'us', r: 'UFNW', team: 'members' },
+            { id: 8, name: 'Walter', country: 'mx', r: 'UFNa', team: 'members' },
+            { id: 9, name: 'Blake', country: 'us', r: 'U1Na', team: 'members' },
+            { id: 10, name: 'Safak', country: 'tr', r: 'UFNd', team: 'members' },
+            { id: 11, name: 'Drew', country: 'us', r: 'UFNb', team: 'members' },
+            { id: 12, name: 'Evan', country: 'us', r: 'UlNZ', team: 'members' },
+            { id: 13, name: 'Tom W', country: 'pl', r: 'UFNZ', team: 'members' },
+            { id: 14, name: 'Thomas', country: 'us', r: 'XlNY', team: 'members' },
+            { id: 15, name: 'Klodi', country: 'al', r: 'XlNb', team: 'members' },
+            { id: 16, name: 'Ryan', country: 'us', r: 'XlNb', team: 'members' },
+            { id: 17, name: 'Edwin', country: 'mx', r: 'UVNb', team: 'members' },
+            { id: 18, name: 'Abel', country: 'us', r: 'XlNZ', team: 'members' },
+            { id: 19, name: 'Victor', country: 'sv', r: 'XlNZ', team: 'members' },
+            { id: 20, name: 'James', country: 'us', r: 'UVNY', team: 'members' },
+            { id: 21, name: 'Ben', country: 'gb-sct', r: 'UVNY', team: 'members' },
+            { id: 22, name: 'Marcos', country: 'mx', r: 'U1Nb', team: 'members' },
+            { id: 23, name: 'John', country: 'us', r: 'UlNY', team: 'members' },
+            { id: 24, name: 'Omar', country: 'us', r: 'UVNb', team: 'members' },
+            { id: 25, name: 'Kirby', country: 'us', r: 'UFNY', team: 'members' },
+            { id: 26, name: 'Justin', country: 'us', r: 'UVNY', team: 'members' },
+            { id: 27, name: 'Daniel', country: 'us', r: 'XlNb', team: 'members' },
+            { id: 28, name: 'Troy', country: 'us', r: 'U1Nb', team: 'members' },
+            { id: 29, name: 'Soren', country: 'us', r: 'VVNZ', team: 'members' },
+            { id: 30, name: 'Zane', country: 'us', r: 'XlNb', team: 'members' },
+            { id: 31, name: 'Matthew', country: 'us', r: 'UFNb', team: 'members' },
+            { id: 32, name: 'Shawn', country: 'us', r: 'UFNW', team: 'members' }
         ];
 
         // Decode ratings on initialization
@@ -1002,10 +1021,39 @@
             marker.style.top = `${y}%`;
         }, { passive: false });
 
-        document.addEventListener('mouseup', () => {
+        document.addEventListener('mouseup', (e) => {
             if (!pitchDragState) return;
             const { marker, player, team } = pitchDragState;
             marker.classList.remove('dragging');
+
+            // Check if dropped on another player marker
+            const targetMarker = e.target.closest('.player-marker');
+            if (targetMarker && targetMarker !== marker && targetMarker.closest(`#${team}Pitch`)) {
+                const targetPlayerId = parseInt(targetMarker.dataset.playerId);
+                const targetPlayer = players.find(p => p.id === targetPlayerId);
+
+                if (targetPlayer) {
+                    // Swap positions
+                    const posKey1 = `${team}-${player.id}`;
+                    const posKey2 = `${team}-${targetPlayer.id}`;
+
+                    const pos1 = customPositions[posKey1] || {
+                        x: parseFloat(marker.style.left),
+                        y: parseFloat(marker.style.top)
+                    };
+                    const pos2 = customPositions[posKey2] || {
+                        x: parseFloat(targetMarker.style.left),
+                        y: parseFloat(targetMarker.style.top)
+                    };
+
+                    customPositions[posKey1] = pos2;
+                    customPositions[posKey2] = pos1;
+
+                    pitchDragState = null;
+                    render();
+                    return;
+                }
+            }
 
             const posKey = `${team}-${player.id}`;
             customPositions[posKey] = {
@@ -1015,10 +1063,42 @@
             pitchDragState = null;
         });
 
-        document.addEventListener('touchend', () => {
+        document.addEventListener('touchend', (e) => {
             if (!pitchDragState) return;
             const { marker, player, team } = pitchDragState;
             marker.classList.remove('dragging');
+
+            // Check if dropped on another player marker
+            const touch = e.changedTouches[0];
+            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
+            const targetMarker = targetElement?.closest('.player-marker');
+
+            if (targetMarker && targetMarker !== marker && targetMarker.closest(`#${team}Pitch`)) {
+                const targetPlayerId = parseInt(targetMarker.dataset.playerId);
+                const targetPlayer = players.find(p => p.id === targetPlayerId);
+
+                if (targetPlayer) {
+                    // Swap positions
+                    const posKey1 = `${team}-${player.id}`;
+                    const posKey2 = `${team}-${targetPlayer.id}`;
+
+                    const pos1 = customPositions[posKey1] || {
+                        x: parseFloat(marker.style.left),
+                        y: parseFloat(marker.style.top)
+                    };
+                    const pos2 = customPositions[posKey2] || {
+                        x: parseFloat(targetMarker.style.left),
+                        y: parseFloat(targetMarker.style.top)
+                    };
+
+                    customPositions[posKey1] = pos2;
+                    customPositions[posKey2] = pos1;
+
+                    pitchDragState = null;
+                    render();
+                    return;
+                }
+            }
 
             const posKey = `${team}-${player.id}`;
             customPositions[posKey] = {
@@ -1293,7 +1373,24 @@
 
             // Sort each team by position suitability (def-heavy to off-heavy)
             // High DEF players first (GK, DEF), balanced in middle (MID), high OFF players last (FWD)
-            const sortByPosition = (a, b) => (b.def - b.off) - (a.def - a.off);
+            const sortByPosition = (a, b) => {
+                const aDiff = a.def - a.off;
+                const bDiff = b.def - b.off;
+
+                // Primary: sort by difference (defensive first)
+                if (bDiff !== aDiff) {
+                    return bDiff - aDiff;
+                }
+
+                // Secondary: for same difference, use relevant stat
+                // Defensive players: prefer higher DEF
+                // Offensive players: prefer higher OFF
+                if (aDiff > 0) {
+                    return b.def - a.def;
+                } else {
+                    return b.off - a.off;
+                }
+            };
             bluePlayers.sort(sortByPosition);
             redPlayers.sort(sortByPosition);
 
@@ -1380,23 +1477,23 @@
             const signedUp = getTeamPlayers('signedup');
 
             // Build CSV content
-            let csv = 'Team,Position,Name,Country,Offensive,Defensive\n';
+            let csv = 'Team,Position,Name\n';
 
             // Add Blue team with positions
             const bluePositioned = assignPositions(blueTeam);
             bluePositioned.forEach(p => {
-                csv += `Blue,${p.position.toUpperCase()},${p.name},${p.country},${p.off},${p.def}\n`;
+                csv += `Blue,${p.position.toUpperCase()},${p.name}\n`;
             });
 
             // Add Red team with positions
             const redPositioned = assignPositions(redTeam);
             redPositioned.forEach(p => {
-                csv += `Red,${p.position.toUpperCase()},${p.name},${p.country},${p.off},${p.def}\n`;
+                csv += `Red,${p.position.toUpperCase()},${p.name}\n`;
             });
 
             // Add signed up players
             signedUp.forEach(p => {
-                csv += `Signed Up,-,${p.name},${p.country},${p.off},${p.def}\n`;
+                csv += `Signed Up,-,${p.name}\n`;
             });
 
             // Download the CSV
