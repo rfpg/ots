@@ -1275,8 +1275,7 @@
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
 
-            // Assign to teams using a balanced approach without pre-sorting
-            // This keeps positions random while balancing overall team strength
+            // Assign to teams using a balanced approach
             const bluePlayers = [];
             const redPlayers = [];
             let blueTotal = 0, redTotal = 0;
@@ -1292,7 +1291,13 @@
                 }
             });
 
-            // Update player teams while maintaining randomized order
+            // Sort each team by position suitability (def-heavy to off-heavy)
+            // GK gets first, then defenders (high def), midfielders (balanced), forwards (high off)
+            const sortByPosition = (a, b) => (b.def - b.off) - (a.def - a.off);
+            bluePlayers.sort(sortByPosition);
+            redPlayers.sort(sortByPosition);
+
+            // Update player teams while maintaining position-based order
             bluePlayers.forEach(p => p.team = 'blue');
             redPlayers.forEach(p => p.team = 'red');
 
