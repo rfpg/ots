@@ -1293,13 +1293,18 @@
 
             // Sort each team by position suitability (def-heavy to off-heavy)
             // High DEF players first (GK, DEF), balanced in middle (MID), high OFF players last (FWD)
-            const sortByPosition = (a, b) => (a.def - a.off) - (b.def - b.off);
+            const sortByPosition = (a, b) => (b.def - b.off) - (a.def - a.off);
             bluePlayers.sort(sortByPosition);
             redPlayers.sort(sortByPosition);
 
-            // Update player teams while maintaining position-based order
+            // Update player teams
             bluePlayers.forEach(p => p.team = 'blue');
             redPlayers.forEach(p => p.team = 'red');
+
+            // Rebuild the players array to preserve sorted team order
+            const memberPlayers = players.filter(p => p.team === 'members');
+            players.length = 0;
+            players.push(...memberPlayers, ...bluePlayers, ...redPlayers);
 
             // Clear custom positions when shuffling
             Object.keys(customPositions).forEach(key => delete customPositions[key]);
