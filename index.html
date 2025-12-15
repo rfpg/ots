@@ -1268,20 +1268,34 @@
                 return;
             }
 
-            const shuffled = [...signedUp].sort(() => Math.random() - 0.5);
-            shuffled.sort((a, b) => (b.off + b.def) - (a.off + a.def));
+            // Fisher-Yates shuffle for true randomization
+            const shuffled = [...signedUp];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
 
+            // Assign to teams using a balanced approach without pre-sorting
+            // This keeps positions random while balancing overall team strength
+            const bluePlayers = [];
+            const redPlayers = [];
             let blueTotal = 0, redTotal = 0;
+
             shuffled.forEach(player => {
                 const total = player.off + player.def;
                 if (blueTotal <= redTotal) {
-                    player.team = 'blue';
+                    bluePlayers.push(player);
                     blueTotal += total;
                 } else {
-                    player.team = 'red';
+                    redPlayers.push(player);
                     redTotal += total;
                 }
             });
+
+            // Update player teams while maintaining randomized order
+            bluePlayers.forEach(p => p.team = 'blue');
+            redPlayers.forEach(p => p.team = 'red');
+
             // Clear custom positions when shuffling
             Object.keys(customPositions).forEach(key => delete customPositions[key]);
             render();
