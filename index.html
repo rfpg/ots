@@ -771,7 +771,7 @@
             { id: 16, name: 'Ryan', country: 'us', r: 'ODo1', team: 'members' },
             { id: 17, name: 'Edwin', country: 'mx', r: 'Nzo1', team: 'members' },
             { id: 18, name: 'Abel', country: 'us', r: 'ODo3', team: 'members' },
-            { id: 19, name: 'Victor', country: 'sv', r: 'Nzo4', team: 'members' },
+            { id: 19, name: 'Victor', country: 'sv', r: 'ODo3', team: 'members' },
             { id: 20, name: 'James', country: 'us', r: 'Nzo2', team: 'members' },
             { id: 21, name: 'Ben', country: 'gb-sct', r: 'Nzo2', team: 'members' },
             { id: 22, name: 'Marcos', country: 'mx', r: 'NTo1', team: 'members' },
@@ -1292,8 +1292,8 @@
             });
 
             // Sort each team by position suitability (def-heavy to off-heavy)
-            // GK gets first, then defenders (high def), midfielders (balanced), forwards (high off)
-            const sortByPosition = (a, b) => (b.def - b.off) - (a.def - a.off);
+            // High DEF players first (GK, DEF), balanced in middle (MID), high OFF players last (FWD)
+            const sortByPosition = (a, b) => (a.def - a.off) - (b.def - b.off);
             bluePlayers.sort(sortByPosition);
             redPlayers.sort(sortByPosition);
 
