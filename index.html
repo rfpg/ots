@@ -772,38 +772,38 @@
 
         // Player data with encrypted ratings (XOR cipher with secret key)
         const playersData = [
-            { id: 1, name: 'Andrew', country: 'us', r: 'U1Na', team: 'members' },
-            { id: 2, name: 'Tom M', country: 'us-nc', r: 'UVNY', team: 'members' },
-            { id: 3, name: 'Quentin', country: 'fr', r: 'X1Nb', team: 'members' },
-            { id: 4, name: 'Ricky', country: 'ie', r: 'XlNZ', team: 'members' },
-            { id: 5, name: 'Femi', country: 'us', r: 'UVNY', team: 'members' },
-            { id: 6, name: 'Shane', country: 'us', r: 'UFNb', team: 'members' },
-            { id: 7, name: 'Milton', country: 'us', r: 'UFNW', team: 'members' },
-            { id: 8, name: 'Walter', country: 'mx', r: 'UFNa', team: 'members' },
-            { id: 9, name: 'Blake', country: 'us', r: 'U1Na', team: 'members' },
-            { id: 10, name: 'Safak', country: 'tr', r: 'UFNd', team: 'members' },
-            { id: 11, name: 'Drew', country: 'us', r: 'UFNb', team: 'members' },
-            { id: 12, name: 'Evan', country: 'us', r: 'UlNZ', team: 'members' },
-            { id: 13, name: 'Tom W', country: 'pl', r: 'UFNZ', team: 'members' },
-            { id: 14, name: 'Thomas', country: 'us', r: 'XlNY', team: 'members' },
-            { id: 15, name: 'Klodi', country: 'al', r: 'XlNb', team: 'members' },
-            { id: 16, name: 'Ryan', country: 'us', r: 'XlNb', team: 'members' },
-            { id: 17, name: 'Edwin', country: 'mx', r: 'UVNb', team: 'members' },
-            { id: 18, name: 'Abel', country: 'us', r: 'XlNZ', team: 'members' },
-            { id: 19, name: 'Victor', country: 'sv', r: 'UVNW', team: 'members' },
-            { id: 20, name: 'James', country: 'us', r: 'UVNY', team: 'members' },
-            { id: 21, name: 'Ben', country: 'gb-sct', r: 'UVNY', team: 'members' },
-            { id: 22, name: 'Marcos', country: 'mx', r: 'U1Nb', team: 'members' },
-            { id: 23, name: 'John', country: 'us', r: 'UlNY', team: 'members' },
-            { id: 24, name: 'Omar', country: 'ps', r: 'UVNb', team: 'members' },
-            { id: 25, name: 'Kirby', country: 'us', r: 'UFNY', team: 'members' },
-            { id: 26, name: 'Justin', country: 'us', r: 'UVNY', team: 'members' },
-            { id: 27, name: 'Daniel', country: 'us', r: 'XlNb', team: 'members' },
-            { id: 28, name: 'Troy', country: 'us', r: 'U1Nb', team: 'members' },
-            { id: 29, name: 'Soren', country: 'us', r: 'VVNZ', team: 'members' },
-            { id: 30, name: 'Zane', country: 'us', r: 'XlNb', team: 'members' },
-            { id: 31, name: 'Matthew', country: 'us', r: 'UFNb', team: 'members' },
-            { id: 32, name: 'Shawn', country: 'us', r: 'UFNW', team: 'members' }
+            { id: 1, name: 'Andrew', country: 'us', r: 'U1Na', pos: 'M', team: 'members' },
+            { id: 2, name: 'Tom M', country: 'us-nc', r: 'UVNY', pos: 'M', team: 'members' },
+            { id: 3, name: 'Quentin', country: 'fr', r: 'X1Nb', pos: 'F', team: 'members' },
+            { id: 4, name: 'Ricky', country: 'ie', r: 'XlNZ', pos: 'M', team: 'members' },
+            { id: 5, name: 'Femi', country: 'us', r: 'UVNY', pos: 'M', team: 'members' },
+            { id: 6, name: 'Shane', country: 'us', r: 'UFNb', pos: 'M', team: 'members' },
+            { id: 7, name: 'Milton', country: 'us', r: 'UFNW', pos: 'D', team: 'members' },
+            { id: 8, name: 'Walter', country: 'mx', r: 'UFNa', pos: 'M', team: 'members' },
+            { id: 9, name: 'Blake', country: 'us', r: 'U1Na', pos: 'M', team: 'members' },
+            { id: 10, name: 'Safak', country: 'tr', r: 'UFNd', pos: 'F', team: 'members' },
+            { id: 11, name: 'Drew', country: 'us', r: 'UFNb', pos: 'F', team: 'members' },
+            { id: 12, name: 'Evan', country: 'us', r: 'UlNZ', pos: 'D', team: 'members' },
+            { id: 13, name: 'Tom W', country: 'pl', r: 'UFNZ', pos: 'D', team: 'members' },
+            { id: 14, name: 'Thomas', country: 'us', r: 'XlNY', pos: 'F', team: 'members' },
+            { id: 15, name: 'Klodi', country: 'al', r: 'XlNb', pos: 'F', team: 'members' },
+            { id: 16, name: 'Ryan', country: 'us', r: 'XlNb', pos: 'M', team: 'members' },
+            { id: 17, name: 'Edwin', country: 'mx', r: 'UVNb', pos: 'M', team: 'members' },
+            { id: 18, name: 'Abel', country: 'us', r: 'XlNZ', pos: 'D', team: 'members' },
+            { id: 19, name: 'Victor', country: 'sv', r: 'UVNW', pos: 'D', team: 'members' },
+            { id: 20, name: 'James', country: 'us', r: 'UVNY', pos: 'M', team: 'members' },
+            { id: 21, name: 'Ben', country: 'gb-sct', r: 'UVNY', pos: 'F', team: 'members' },
+            { id: 22, name: 'Marcos', country: 'mx', r: 'U1Nb', pos: 'D', team: 'members' },
+            { id: 23, name: 'John', country: 'us', r: 'UlNY', pos: 'D', team: 'members' },
+            { id: 24, name: 'Omar', country: 'ps', r: 'UVNb', pos: 'M', team: 'members' },
+            { id: 25, name: 'Kirby', country: 'us', r: 'UFNY', pos: 'F', team: 'members' },
+            { id: 26, name: 'Justin', country: 'us', r: 'UVNY', pos: 'M', team: 'members' },
+            { id: 27, name: 'Daniel', country: 'us', r: 'XlNb', pos: 'F', team: 'members' },
+            { id: 28, name: 'Troy', country: 'us', r: 'U1Nb', pos: 'M', team: 'members' },
+            { id: 29, name: 'Soren', country: 'us', r: 'VVNZ', pos: 'D', team: 'members' },
+            { id: 30, name: 'Zane', country: 'us', r: 'XlNb', pos: 'F', team: 'members' },
+            { id: 31, name: 'Matthew', country: 'us', r: 'UFNb', pos: 'M', team: 'members' },
+            { id: 32, name: 'Shawn', country: 'us', r: 'UFNW', pos: 'M', team: 'members' }
         ];
 
         // Decode ratings on initialization
@@ -1385,37 +1385,37 @@
                 const mid = [];
                 let gk = null;
 
-                // Categorize players by their tendency:
-                // - Attackers: OFF > DEF (better at attacking → FWD)
-                // - Defenders: DEF > OFF (better at defending → DEF)
-                // - Balanced: OFF == DEF (midfielders)
-                const attackers = [...pool]
-                    .filter(p => p.off > p.def)
-                    .sort((a, b) => b.off - a.off); // Best attackers first
-                const defenders = [...pool]
-                    .filter(p => p.def > p.off)
-                    .sort((a, b) => b.def - a.def); // Best defenders first
+                // Weighted position assignment:
+                // Combines preferred position (F/M/D) with rating tendency (OFF vs DEF)
+                // FWD score = (pos=='F' ? 10 : 0) + (OFF - DEF)
+                // DEF score = (pos=='D' ? 10 : 0) + (DEF - OFF)
+                // Higher scores get priority for that role
 
-                // 1. Assign forwards from attackers
-                for (let i = 0; i < formation.fwd && attackers.length > 0; i++) {
-                    const player = attackers.shift();
+                const fwdScore = (p) => (p.pos === 'F' ? 10 : 0) + (p.off - p.def);
+                const defScore = (p) => (p.pos === 'D' ? 10 : 0) + (p.def - p.off);
+
+                // Sort all players by FWD score and pick top candidates
+                const byFwdScore = [...pool].sort((a, b) => fwdScore(b) - fwdScore(a));
+                for (let i = 0; i < formation.fwd && byFwdScore.length > 0; i++) {
+                    const player = byFwdScore.shift();
                     fwd.push(player);
                     pool.splice(pool.indexOf(player), 1);
                 }
 
-                // 2. Assign defenders from defenders
-                for (let i = 0; i < formation.def && defenders.length > 0; i++) {
-                    const player = defenders.shift();
+                // Sort remaining by DEF score and pick top candidates
+                const byDefScore = [...pool].sort((a, b) => defScore(b) - defScore(a));
+                for (let i = 0; i < formation.def && byDefScore.length > 0; i++) {
+                    const player = byDefScore.shift();
                     def.push(player);
                     pool.splice(pool.indexOf(player), 1);
                 }
 
-                // 3. Assign GK - first remaining player
+                // Assign GK - first remaining player
                 if (pool.length > 0) {
                     gk = pool.shift();
                 }
 
-                // 4. Remaining players are midfielders (balanced + overflow)
+                // Remaining players are midfielders
                 mid.push(...pool);
 
                 // Build final order: GK, DEF, MID, FWD
