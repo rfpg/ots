@@ -1385,22 +1385,27 @@
                 const mid = [];
                 let gk = null;
 
-                // 1. Assign forwards - top offensive players (excluding balanced players)
-                const byOffense = [...pool]
-                    .filter(p => p.off - p.def >= 2) // Only clearly offensive players
-                    .sort((a, b) => b.off - a.off);
-                for (let i = 0; i < formation.fwd && byOffense.length > 0; i++) {
-                    const player = byOffense.shift();
+                // Categorize players by their tendency:
+                // - Attackers: OFF > DEF (better at attacking → FWD)
+                // - Defenders: DEF > OFF (better at defending → DEF)
+                // - Balanced: OFF == DEF (midfielders)
+                const attackers = [...pool]
+                    .filter(p => p.off > p.def)
+                    .sort((a, b) => b.off - a.off); // Best attackers first
+                const defenders = [...pool]
+                    .filter(p => p.def > p.off)
+                    .sort((a, b) => b.def - a.def); // Best defenders first
+
+                // 1. Assign forwards from attackers
+                for (let i = 0; i < formation.fwd && attackers.length > 0; i++) {
+                    const player = attackers.shift();
                     fwd.push(player);
                     pool.splice(pool.indexOf(player), 1);
                 }
 
-                // 2. Assign defenders - top defensive players from remaining (excluding balanced)
-                const byDefense = [...pool]
-                    .filter(p => p.def - p.off >= 2) // Only clearly defensive players
-                    .sort((a, b) => b.def - a.def);
-                for (let i = 0; i < formation.def && byDefense.length > 0; i++) {
-                    const player = byDefense.shift();
+                // 2. Assign defenders from defenders
+                for (let i = 0; i < formation.def && defenders.length > 0; i++) {
+                    const player = defenders.shift();
                     def.push(player);
                     pool.splice(pool.indexOf(player), 1);
                 }
@@ -1410,7 +1415,7 @@
                     gk = pool.shift();
                 }
 
-                // 4. Remaining players are midfielders (includes balanced players)
+                // 4. Remaining players are midfielders (balanced + overflow)
                 mid.push(...pool);
 
                 // Build final order: GK, DEF, MID, FWD
