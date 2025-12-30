@@ -46,6 +46,34 @@
             margin-right: 2px;
         }
 
+        .xg-display {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #f0f9ff 0%, #fef3f2 100%);
+            border-radius: 8px;
+            display: none;
+        }
+
+        .xg-display.visible {
+            display: block;
+        }
+
+        .xg-display .blue-xg {
+            color: #2563eb;
+        }
+
+        .xg-display .red-xg {
+            color: #dc2626;
+        }
+
+        .xg-display .separator {
+            color: #737373;
+            margin: 0 16px;
+        }
+
         .container {
             max-width: 1600px;
             margin: 0 auto;
@@ -596,6 +624,8 @@
     <div class="container">
         <h1>Old Town Pickup Soccer</h1>
         <p class="organizers">Organizers: <img src="https://flagcdn.com/w20/ie.png" alt="IE" class="org-flag"> Ricky, <img src="https://flagcdn.com/w20/gb-sct.png" alt="SCT" class="org-flag"> Ben, <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Evan, <img src="https://flagcdn.com/w20/pl.png" alt="PL" class="org-flag"> Tom W & <img src="https://flagpedia.net/data/us/w580/nc.png" alt="NC" class="org-flag"> Tom M</p>
+
+        <div id="xgDisplay" class="xg-display"></div>
 
         <div class="controls">
             <button class="primary" onclick="shuffleTeams()">Shuffle & Balance Teams</button>
@@ -1446,6 +1476,64 @@
             render();
         }
 
+        function calculateXG() {
+            const blueTeam = getTeamPlayers('blue');
+            const redTeam = getTeamPlayers('red');
+            const xgDisplay = document.getElementById('xgDisplay');
+
+            if (blueTeam.length === 0 && redTeam.length === 0) {
+                xgDisplay.classList.remove('visible');
+                return;
+            }
+
+            const formation = FORMATIONS[getFormation()];
+            const totalPositions = formation.fwd + formation.mid + formation.def + 1; // +1 for GK
+
+            // Position weights: FWD=1.5, MID=1.0, DEF=0.5, GK=0.2
+            const getPositionWeight = (idx, teamSize) => {
+                const fwdSlots = formation.fwd;
+                const midSlots = formation.mid;
+                const defSlots = formation.def;
+                // Players are ordered: GK, DEF, MID, FWD (reversed in array)
+                const posFromBack = teamSize - 1 - idx;
+                if (posFromBack < fwdSlots) return 1.5;  // Forward
+                if (posFromBack < fwdSlots + midSlots) return 1.0;  // Midfield
+                if (posFromBack < fwdSlots + midSlots + defSlots) return 0.5;  // Defense
+                return 0.2;  // GK
+            };
+
+            // Calculate team xG
+            const calcTeamXG = (team, opposingTeam) => {
+                if (team.length === 0) return 0;
+
+                // Sum of (OFF × position weight)
+                let offensiveStrength = 0;
+                team.forEach((p, idx) => {
+                    const weight = getPositionWeight(idx, team.length);
+                    offensiveStrength += p.off * weight;
+                });
+
+                // Opposing team's average DEF
+                const avgDef = opposingTeam.length > 0
+                    ? opposingTeam.reduce((sum, p) => sum + p.def, 0) / opposingTeam.length
+                    : 5;
+
+                // xG formula: offensive strength scaled by opposing defense
+                // Scale factor to get reasonable xG numbers (typically 0.5-3.0)
+                return (offensiveStrength / (avgDef * 1.5)).toFixed(1);
+            };
+
+            const blueXG = calcTeamXG(blueTeam, redTeam);
+            const redXG = calcTeamXG(redTeam, blueTeam);
+
+            xgDisplay.innerHTML = `
+                <span class="blue-xg">Blue xG: ${blueXG}</span>
+                <span class="separator">|</span>
+                <span class="red-xg">Red xG: ${redXG}</span>
+            `;
+            xgDisplay.classList.add('visible');
+        }
+
         function render() {
             renderPitch('blue');
             renderPitch('red');
@@ -1455,6 +1543,7 @@
             renderList('membersList', 'members');
             updateStats();
             updateSelectionUI();
+            calculateXG();
         }
 
         async function exportImage() {
