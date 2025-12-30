@@ -1355,19 +1355,15 @@
                 [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
             }
 
-            // Assign to teams using a balanced approach
+            // Assign to teams - alternate for even distribution
             const bluePlayers = [];
             const redPlayers = [];
-            let blueTotal = 0, redTotal = 0;
 
-            shuffled.forEach(player => {
-                const total = player.off + player.def;
-                if (blueTotal <= redTotal) {
+            shuffled.forEach((player, idx) => {
+                if (idx % 2 === 0) {
                     bluePlayers.push(player);
-                    blueTotal += total;
                 } else {
                     redPlayers.push(player);
-                    redTotal += total;
                 }
             });
 
@@ -1379,52 +1375,43 @@
             const sortedRed = [];
 
             [bluePlayers, redPlayers].forEach((teamPlayers, teamIdx) => {
-                const pool = [...teamPlayers];
-                const fwd = [];
-                const def = [];
-                const mid = [];
-                let gk = null;
-
-                // Weighted position assignment:
-                // Combines preferred position (F/M/D) with rating tendency (OFF vs DEF)
+                // Simple position assignment using forward score only
+                // Higher score = forward, lower score = defense
                 // FWD score = (pos=='F' ? 10 : 0) + (OFF - DEF)
-                // DEF score = (pos=='D' ? 10 : 0) + (DEF - OFF)
-                // Higher scores get priority for that role
-
                 const fwdScore = (p) => (p.pos === 'F' ? 10 : 0) + (p.off - p.def);
-                const defScore = (p) => (p.pos === 'D' ? 10 : 0) + (p.def - p.off);
 
-                // Sort all players by FWD score and pick top candidates
-                const byFwdScore = [...pool].sort((a, b) => fwdScore(b) - fwdScore(a));
-                for (let i = 0; i < formation.fwd && byFwdScore.length > 0; i++) {
-                    const player = byFwdScore.shift();
-                    fwd.push(player);
-                    pool.splice(pool.indexOf(player), 1);
+                // Sort by forward score (highest first)
+                const sorted = [...teamPlayers].sort((a, b) => fwdScore(b) - fwdScore(a));
+
+                // Assign positions based on sorted order:
+                // Top = FWD, then MID, then DEF, last = GK
+                const positioned = [];
+                let idx = 0;
+
+                // Forwards (top scorers)
+                for (let i = 0; i < formation.fwd && idx < sorted.length; i++) {
+                    positioned.push(sorted[idx++]);
+                }
+                // Midfielders
+                for (let i = 0; i < formation.mid && idx < sorted.length; i++) {
+                    positioned.push(sorted[idx++]);
+                }
+                // Defenders
+                for (let i = 0; i < formation.def && idx < sorted.length; i++) {
+                    positioned.push(sorted[idx++]);
+                }
+                // GK (lowest scorer)
+                if (idx < sorted.length) {
+                    positioned.push(sorted[idx++]);
                 }
 
-                // Sort remaining by DEF score and pick top candidates
-                const byDefScore = [...pool].sort((a, b) => defScore(b) - defScore(a));
-                for (let i = 0; i < formation.def && byDefScore.length > 0; i++) {
-                    const player = byDefScore.shift();
-                    def.push(player);
-                    pool.splice(pool.indexOf(player), 1);
-                }
-
-                // Assign GK - first remaining player
-                if (pool.length > 0) {
-                    gk = pool.shift();
-                }
-
-                // Remaining players are midfielders
-                mid.push(...pool);
-
-                // Build final order: GK, DEF, MID, FWD
-                const sorted = [gk, ...def, ...mid, ...fwd].filter(p => p);
+                // Reverse to get GK, DEF, MID, FWD order for rendering
+                positioned.reverse();
 
                 if (teamIdx === 0) {
-                    sortedBlue.push(...sorted);
+                    sortedBlue.push(...positioned);
                 } else {
-                    sortedRed.push(...sorted);
+                    sortedRed.push(...positioned);
                 }
             });
 
