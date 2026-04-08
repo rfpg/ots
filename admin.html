@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTS Admin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            min-height: 100vh;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Login */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .login-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 36px 40px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            border: 1px solid #f0f0f0;
+            width: 320px;
+            text-align: center;
+        }
+
+        .login-box h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            letter-spacing: -0.02em;
+        }
+
+        .login-box p {
+            font-size: 0.8125rem;
+            color: #737373;
+            margin-bottom: 24px;
+        }
+
+        .login-box input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            font-size: 0.9375rem;
+            margin-bottom: 10px;
+            transition: border-color 0.15s;
+        }
+
+        .login-box input[type="password"]:focus {
+            outline: none;
+            border-color: #0a0a0a;
+        }
+
+        .error {
+            color: #dc2626;
+            font-size: 0.8125rem;
+            margin-top: 8px;
+            min-height: 20px;
+        }
+
+        /* Admin panel */
+        .admin-panel {
+            padding: 32px 24px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            margin-bottom: 4px;
+        }
+
+        .back-link {
+            font-size: 0.8125rem;
+            color: #737373;
+            text-decoration: none;
+        }
+
+        .back-link:hover { color: #0a0a0a; }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        /* Buttons */
+        button {
+            background: #0a0a0a;
+            color: #fafafa;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            transition: all 0.15s ease;
+            font-family: inherit;
+        }
+
+        button:hover { background: #262626; }
+        button:active { transform: translateY(1px); }
+
+        button.primary { background: #059669; }
+        button.primary:hover { background: #10b981; }
+
+        button.secondary {
+            background: #fff;
+            color: #525252;
+            border: 1px solid #e5e5e5;
+        }
+
+        button.secondary:hover { background: #fafafa; border-color: #d4d4d4; }
+
+        button.danger { background: #dc2626; }
+        button.danger:hover { background: #ef4444; }
+
+        button.small { padding: 6px 10px; font-size: 12px; }
+
+        /* Status bar */
+        .save-status {
+            font-size: 0.8125rem;
+            color: #059669;
+            font-weight: 500;
+            padding: 8px 0;
+            min-height: 24px;
+            transition: opacity 0.3s;
+        }
+
+        .save-status.hidden { opacity: 0; }
+        .save-status.unsaved { color: #d97706; }
+
+        /* Players table */
+        .table-wrapper {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #f0f0f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #737373;
+            padding: 10px 12px;
+            text-align: left;
+            background: #fafafa;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        td {
+            padding: 6px 8px;
+            border-bottom: 1px solid #fafafa;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #fafafa; }
+
+        td.flag-cell {
+            width: 36px;
+            text-align: center;
+            padding: 6px 4px;
+        }
+
+        td.flag-cell img {
+            width: 24px;
+            height: 17px;
+            object-fit: cover;
+            border-radius: 2px;
+            display: block;
+            margin: 0 auto;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+        }
+
+        td input[type="text"],
+        td input[type="number"],
+        td select {
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 5px 7px;
+            font-size: 0.8125rem;
+            font-family: inherit;
+            color: #1a1a1a;
+            background: transparent;
+            width: 100%;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        td input[type="text"]:hover,
+        td input[type="number"]:hover,
+        td select:hover {
+            border-color: #e5e5e5;
+            background: #fff;
+        }
+
+        td input[type="text"]:focus,
+        td input[type="number"]:focus,
+        td select:focus {
+            outline: none;
+            border-color: #0a0a0a;
+            background: #fff;
+        }
+
+        td input[type="number"] {
+            width: 56px;
+            text-align: center;
+            font-variant-numeric: tabular-nums;
+        }
+
+        td select { width: auto; cursor: pointer; }
+
+        .name-cell { min-width: 120px; }
+        .rating-cell { width: 64px; text-align: center; }
+        .pos-cell { width: 72px; }
+        .delete-cell { width: 40px; text-align: center; }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #d4d4d4;
+            font-size: 16px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 4px;
+            line-height: 1;
+        }
+
+        .delete-btn:hover {
+            color: #dc2626;
+            background: #fef2f2;
+        }
+
+        /* Add player row */
+        .add-row td {
+            background: #f9fafb;
+            border-top: 1px solid #f0f0f0;
+        }
+
+        .add-row td input,
+        .add-row td select {
+            border-color: #e5e5e5;
+            background: #fff;
+        }
+
+        .add-row td input:focus,
+        .add-row td select:focus {
+            border-color: #059669;
+        }
+
+        /* Export modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            width: 560px;
+            max-width: calc(100vw - 32px);
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+        }
+
+        .modal h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .modal p {
+            font-size: 0.8125rem;
+            color: #737373;
+            margin-bottom: 14px;
+        }
+
+        .modal textarea {
+            width: 100%;
+            height: 240px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 0.6875rem;
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            resize: vertical;
+            color: #1a1a1a;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div class="login-screen" id="loginScreen">
+    <div class="login-box">
+        <h1>OTS Admin</h1>
+        <p>Player management</p>
+        <form onsubmit="login(event)">
+            <input type="password" id="passwordInput" placeholder="Password" autofocus>
+            <button type="submit" style="width:100%;margin-top:4px">Login</button>
+            <p class="error" id="loginError"></p>
+        </form>
+    </div>
+</div>
+
+<!-- Admin Panel -->
+<div class="admin-panel" id="adminPanel" style="display:none">
+    <header>
+        <div>
+            <h1>Player Management</h1>
+            <a href="index.html" class="back-link">← Back to app</a>
+        </div>
+        <div class="header-actions">
+            <button class="secondary small" onclick="showExportModal()">Export Code</button>
+            <button class="secondary small danger" onclick="resetToDefaults()">Reset to Defaults</button>
+            <button class="primary" onclick="saveChanges()">Save Changes</button>
+        </div>
+    </header>
+
+    <div class="save-status hidden" id="saveStatus">Changes saved.</div>
+
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width:36px"></th>
+                    <th>Name</th>
+                    <th>Country</th>
+                    <th style="width:72px">Pos</th>
+                    <th style="width:64px;text-align:center">Off</th>
+                    <th style="width:64px;text-align:center">Def</th>
+                    <th style="width:40px"></th>
+                </tr>
+            </thead>
+            <tbody id="playerTableBody"></tbody>
+            <tfoot>
+                <tr class="add-row" id="addRow">
+                    <td class="flag-cell"><img id="addFlagPreview" src="" alt="" style="opacity:0"></td>
+                    <td class="name-cell"><input type="text" id="addName" placeholder="Name"></td>
+                    <td>
+                        <select id="addCountry" onchange="updateAddFlagPreview()"></select>
+                    </td>
+                    <td class="pos-cell">
+                        <select id="addPos">
+                            <option value="D">D</option>
+                            <option value="M" selected>M</option>
+                            <option value="F">F</option>
+                        </select>
+                    </td>
+                    <td class="rating-cell"><input type="number" id="addOff" min="1" max="10" value="5"></td>
+                    <td class="rating-cell"><input type="number" id="addDef" min="1" max="10" value="5"></td>
+                    <td class="delete-cell">
+                        <button class="delete-btn" onclick="addPlayer()" title="Add player" style="color:#059669;font-size:20px">+</button>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal" onclick="if(event.target===this)closeExportModal()">
+    <div class="modal">
+        <h3>Export Player Code</h3>
+        <p>Copy this and replace the <code>playersData</code> array in index.html (lines 804–837).</p>
+        <textarea id="exportCodeArea" readonly spellcheck="false"></textarea>
+        <div class="modal-actions">
+            <button class="secondary" onclick="closeExportModal()">Close</button>
+            <button onclick="copyExportCode()">Copy to Clipboard</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ─── Auth ───────────────────────────────────────────────────────────────────
+    // Password: "otsadmin"
+    const AUTH_HASH = 'b3RzYWRtaW4=';
+
+    function login(e) {
+        e.preventDefault();
+        const input = document.getElementById('passwordInput').value;
+        if (btoa(input) === AUTH_HASH) {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            initAdmin();
+        } else {
+            document.getElementById('loginError').textContent = 'Incorrect password.';
+            document.getElementById('passwordInput').select();
+        }
+    }
+
+    // ─── Country list ────────────────────────────────────────────────────────────
+    const COUNTRIES = [
+        { code: 'us',     name: 'United States' },
+        { code: 'us-nc',  name: 'North Carolina' },
+        { code: 'ie',     name: 'Ireland' },
+        { code: 'mx',     name: 'Mexico' },
+        { code: 'ec',     name: 'Ecuador' },
+        { code: 'sv',     name: 'El Salvador' },
+        { code: 'tr',     name: 'Turkey' },
+        { code: 'al',     name: 'Albania' },
+        { code: 'fr',     name: 'France' },
+        { code: 'pl',     name: 'Poland' },
+        { code: 'gb-sct', name: 'Scotland' },
+        { code: 'gb-eng', name: 'England' },
+        { code: 'ps',     name: 'Palestine' },
+        { code: 'de',     name: 'Germany' },
+        { code: 'br',     name: 'Brazil' },
+        { code: 'ar',     name: 'Argentina' },
+        { code: 'pt',     name: 'Portugal' },
+        { code: 'es',     name: 'Spain' },
+        { code: 'it',     name: 'Italy' },
+        { code: 'co',     name: 'Colombia' },
+        { code: 'ng',     name: 'Nigeria' },
+        { code: 'gh',     name: 'Ghana' },
+        { code: 'ro',     name: 'Romania' },
+        { code: 'hr',     name: 'Croatia' },
+        { code: 'ca',     name: 'Canada' },
+    ];
+
+    function getFlagUrl(country) {
+        if (country.startsWith('us-')) {
+            const state = country.substring(3);
+            return `https://flagpedia.net/data/us/w580/${state}.png`;
+        }
+        return `https://flagcdn.com/w40/${country}.png`;
+    }
+
+    function buildCountrySelect(selectEl, selectedCode) {
+        selectEl.innerHTML = '';
+        COUNTRIES.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c.code;
+            opt.textContent = `${c.name}`;
+            if (c.code === selectedCode) opt.selected = true;
+            selectEl.appendChild(opt);
+        });
+    }
+
+    // ─── Rating cipher (same as index.html) ────────────────────────────────────
+    const SECRET_KEY = 'fingerspitzengefuhl';
+
+    function encodeRating(off, def) {
+        const plaintext = `${off}:${def}`;
+        let encrypted = '';
+        for (let i = 0; i < plaintext.length; i++) {
+            const charCode = plaintext.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+            encrypted += String.fromCharCode(charCode);
+        }
+        return btoa(encrypted);
+    }
+
+    function decodeRating(encoded) {
+        try {
+            const encrypted = atob(encoded);
+            let plaintext = '';
+            for (let i = 0; i < encrypted.length; i++) {
+                const charCode = encrypted.charCodeAt(i) ^ SECRET_KEY.charCodeAt(i % SECRET_KEY.length);
+                plaintext += String.fromCharCode(charCode);
+            }
+            const [off, def] = plaintext.split(':').map(Number);
+            return { off, def };
+        } catch (e) {
+            return { off: 5, def: 5 };
+        }
+    }
+
+    // ─── Default player data (same as index.html) ───────────────────────────────
+    const DEFAULT_PLAYERS_DATA = [
+        { id: 1,  name: 'Andrew',  country: 'us',     r: 'U1Na', pos: 'M' },
+        { id: 2,  name: 'Tom M',   country: 'us-nc',  r: 'UVNY', pos: 'M' },
+        { id: 3,  name: 'Quentin', country: 'fr',     r: 'X1Nb', pos: 'F' },
+        { id: 4,  name: 'Ricky',   country: 'ie',     r: 'XlNZ', pos: 'M' },
+        { id: 5,  name: 'Femi',    country: 'us',     r: 'UVNY', pos: 'M' },
+        { id: 6,  name: 'Shane',   country: 'us',     r: 'UFNb', pos: 'M' },
+        { id: 7,  name: 'Milton',  country: 'us',     r: 'UFNW', pos: 'D' },
+        { id: 8,  name: 'Walter',  country: 'mx',     r: 'UFNa', pos: 'M' },
+        { id: 9,  name: 'Blake',   country: 'us',     r: 'U1Na', pos: 'M' },
+        { id: 10, name: 'Safak',   country: 'tr',     r: 'UFNd', pos: 'F' },
+        { id: 11, name: 'Drew',    country: 'us',     r: 'UFNb', pos: 'F' },
+        { id: 12, name: 'Evan',    country: 'us',     r: 'UlNZ', pos: 'D' },
+        { id: 13, name: 'Tom W',   country: 'pl',     r: 'UFNZ', pos: 'D' },
+        { id: 14, name: 'Thomas',  country: 'us',     r: 'XlNY', pos: 'F' },
+        { id: 15, name: 'Klodi',   country: 'al',     r: 'XlNb', pos: 'F' },
+        { id: 16, name: 'Ryan',    country: 'us',     r: 'XlNb', pos: 'M' },
+        { id: 17, name: 'Edwin',   country: 'mx',     r: 'UVNb', pos: 'M' },
+        { id: 18, name: 'Abel',    country: 'us',     r: 'XlNZ', pos: 'D' },
+        { id: 19, name: 'Victor',  country: 'sv',     r: 'UVNW', pos: 'D' },
+        { id: 20, name: 'James',   country: 'us',     r: 'UVNY', pos: 'M' },
+        { id: 21, name: 'Ben',     country: 'gb-sct', r: 'UVNY', pos: 'F' },
+        { id: 22, name: 'Marcos',  country: 'mx',     r: 'U1Nb', pos: 'D' },
+        { id: 23, name: 'John',    country: 'us',     r: 'UlNY', pos: 'D' },
+        { id: 24, name: 'Omar',    country: 'ps',     r: 'UVNb', pos: 'M' },
+        { id: 25, name: 'Kirby',   country: 'us',     r: 'UFNY', pos: 'F' },
+        { id: 26, name: 'Justin',  country: 'us',     r: 'UVNY', pos: 'M' },
+        { id: 27, name: 'Daniel',  country: 'us',     r: 'XlNb', pos: 'F' },
+        { id: 28, name: 'Troy',    country: 'us',     r: 'U1Nb', pos: 'M' },
+        { id: 29, name: 'Soren',   country: 'us',     r: 'VVNZ', pos: 'D' },
+        { id: 30, name: 'Zane',    country: 'us',     r: 'XlNb', pos: 'F' },
+        { id: 31, name: 'Matthew', country: 'us',     r: 'UFNb', pos: 'M' },
+        { id: 32, name: 'Shawn',   country: 'us',     r: 'UFNW', pos: 'M' },
+    ];
+
+    // ─── Player state ────────────────────────────────────────────────────────────
+    let players = [];
+    let nextId = 33;
+
+    const STORAGE_KEY = 'otsPlayers';
+
+    function loadPlayers() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                players = JSON.parse(saved);
+                nextId = Math.max(...players.map(p => p.id)) + 1;
+                return;
+            } catch (e) { /* fall through to defaults */ }
+        }
+        // Load from defaults
+        players = DEFAULT_PLAYERS_DATA.map(p => {
+            const { off, def } = decodeRating(p.r);
+            return { id: p.id, name: p.name, country: p.country, pos: p.pos, off, def, team: 'members' };
+        });
+        nextId = 33;
+    }
+
+    function saveChanges() {
+        // Read current values from table inputs
+        const rows = document.querySelectorAll('#playerTableBody tr[data-id]');
+        rows.forEach(row => {
+            const id = parseInt(row.dataset.id);
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+            player.name    = row.querySelector('.input-name').value.trim() || player.name;
+            player.country = row.querySelector('.input-country').value;
+            player.pos     = row.querySelector('.input-pos').value;
+            player.off     = Math.max(1, Math.min(10, parseInt(row.querySelector('.input-off').value) || 5));
+            player.def     = Math.max(1, Math.min(10, parseInt(row.querySelector('.input-def').value) || 5));
+        });
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(players));
+        renderTable();
+        showStatus('Changes saved.', false);
+    }
+
+    function resetToDefaults() {
+        if (!confirm('Reset all players to the hardcoded defaults? This will discard any saved changes.')) return;
+        localStorage.removeItem(STORAGE_KEY);
+        loadPlayers();
+        renderTable();
+        showStatus('Reset to defaults.', false);
+    }
+
+    // ─── Render ──────────────────────────────────────────────────────────────────
+    function renderTable() {
+        const tbody = document.getElementById('playerTableBody');
+        tbody.innerHTML = '';
+
+        players.forEach(player => {
+            const tr = document.createElement('tr');
+            tr.dataset.id = player.id;
+
+            tr.innerHTML = `
+                <td class="flag-cell">
+                    <img src="${getFlagUrl(player.country)}" alt="${player.country}" class="row-flag">
+                </td>
+                <td class="name-cell">
+                    <input type="text" class="input-name" value="${escHtml(player.name)}">
+                </td>
+                <td>
+                    <select class="input-country"></select>
+                </td>
+                <td class="pos-cell">
+                    <select class="input-pos">
+                        <option value="D"${player.pos === 'D' ? ' selected' : ''}>D</option>
+                        <option value="M"${player.pos === 'M' ? ' selected' : ''}>M</option>
+                        <option value="F"${player.pos === 'F' ? ' selected' : ''}>F</option>
+                    </select>
+                </td>
+                <td class="rating-cell">
+                    <input type="number" class="input-off" min="1" max="10" value="${player.off}">
+                </td>
+                <td class="rating-cell">
+                    <input type="number" class="input-def" min="1" max="10" value="${player.def}">
+                </td>
+                <td class="delete-cell">
+                    <button class="delete-btn" title="Remove player" data-id="${player.id}">×</button>
+                </td>
+            `;
+
+            // Build country dropdown
+            const countrySelect = tr.querySelector('.input-country');
+            buildCountrySelect(countrySelect, player.country);
+
+            // Update flag when country changes
+            countrySelect.addEventListener('change', () => {
+                tr.querySelector('.row-flag').src = getFlagUrl(countrySelect.value);
+                markUnsaved();
+            });
+
+            // Mark unsaved on any input change
+            tr.querySelectorAll('input, select').forEach(el => {
+                el.addEventListener('change', markUnsaved);
+                el.addEventListener('input', markUnsaved);
+            });
+
+            // Delete button
+            tr.querySelector('.delete-btn').addEventListener('click', (e) => {
+                const idToDelete = parseInt(e.currentTarget.dataset.id);
+                if (!confirm(`Remove ${player.name} from the player list?`)) return;
+                players = players.filter(p => p.id !== idToDelete);
+                tr.remove();
+                markUnsaved();
+            });
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ─── Add player ──────────────────────────────────────────────────────────────
+    function updateAddFlagPreview() {
+        const code = document.getElementById('addCountry').value;
+        const img = document.getElementById('addFlagPreview');
+        img.src = getFlagUrl(code);
+        img.style.opacity = '1';
+    }
+
+    function addPlayer() {
+        const name = document.getElementById('addName').value.trim();
+        if (!name) {
+            document.getElementById('addName').focus();
+            return;
+        }
+
+        const country = document.getElementById('addCountry').value;
+        const pos     = document.getElementById('addPos').value;
+        const off     = Math.max(1, Math.min(10, parseInt(document.getElementById('addOff').value) || 5));
+        const def     = Math.max(1, Math.min(10, parseInt(document.getElementById('addDef').value) || 5));
+
+        players.push({ id: nextId++, name, country, pos, off, def, team: 'members' });
+        renderTable();
+        markUnsaved();
+
+        // Reset add form
+        document.getElementById('addName').value = '';
+        document.getElementById('addOff').value = '5';
+        document.getElementById('addDef').value = '5';
+        document.getElementById('addName').focus();
+    }
+
+    // ─── Status ──────────────────────────────────────────────────────────────────
+    let statusTimer = null;
+
+    function showStatus(msg, unsaved = false) {
+        const el = document.getElementById('saveStatus');
+        el.textContent = msg;
+        el.className = 'save-status' + (unsaved ? ' unsaved' : '');
+        clearTimeout(statusTimer);
+        if (!unsaved) {
+            statusTimer = setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+    }
+
+    function markUnsaved() {
+        showStatus('Unsaved changes — click Save Changes to apply.', true);
+    }
+
+    // ─── Export ──────────────────────────────────────────────────────────────────
+    function showExportModal() {
+        // Read current values first (same logic as saveChanges but don't persist)
+        const currentPlayers = readCurrentTableValues();
+
+        const lines = currentPlayers.map(p => {
+            const r = encodeRating(p.off, p.def);
+            const name    = p.name.padEnd(8);
+            const country = `'${p.country}'`.padEnd(10);
+            return `    { id: ${String(p.id).padStart(2)}, name: '${p.name}', country: ${country}, r: '${r}', pos: '${p.pos}', team: 'members' },`;
+        });
+
+        const code = `const playersData = [\n${lines.join('\n')}\n];`;
+        document.getElementById('exportCodeArea').value = code;
+        document.getElementById('exportModal').classList.add('active');
+    }
+
+    function closeExportModal() {
+        document.getElementById('exportModal').classList.remove('active');
+    }
+
+    function copyExportCode() {
+        const textarea = document.getElementById('exportCodeArea');
+        textarea.select();
+        document.execCommand('copy');
+        // Brief visual feedback
+        const btn = document.querySelector('.modal-actions button:last-child');
+        const orig = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(() => btn.textContent = orig, 1500);
+    }
+
+    function readCurrentTableValues() {
+        const rows = document.querySelectorAll('#playerTableBody tr[data-id]');
+        const result = [];
+        rows.forEach(row => {
+            const id = parseInt(row.dataset.id);
+            const player = players.find(p => p.id === id);
+            if (!player) return;
+            result.push({
+                ...player,
+                name:    row.querySelector('.input-name').value.trim() || player.name,
+                country: row.querySelector('.input-country').value,
+                pos:     row.querySelector('.input-pos').value,
+                off:     Math.max(1, Math.min(10, parseInt(row.querySelector('.input-off').value) || 5)),
+                def:     Math.max(1, Math.min(10, parseInt(row.querySelector('.input-def').value) || 5)),
+            });
+        });
+        return result;
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────────────────────────
+    function escHtml(str) {
+        return str.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ─── Init ────────────────────────────────────────────────────────────────────
+    function initAdmin() {
+        // Populate add-player country dropdown
+        buildCountrySelect(document.getElementById('addCountry'), 'us');
+        updateAddFlagPreview();
+
+        // Enter key to add player
+        document.getElementById('addName').addEventListener('keypress', e => {
+            if (e.key === 'Enter') addPlayer();
+        });
+
+        // Close export modal on Escape
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') closeExportModal();
+        });
+
+        loadPlayers();
+        renderTable();
+    }
+</script>
+</body>
+</html>

@@ -623,7 +623,7 @@
 <body>
     <div class="container">
         <h1>Old Town Pickup Soccer</h1>
-        <p class="organizers">Organizers: <img src="https://flagcdn.com/w20/ie.png" alt="IE" class="org-flag"> Ricky, <img src="https://flagcdn.com/w20/gb-sct.png" alt="SCT" class="org-flag"> Ben, <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Evan, <img src="https://flagcdn.com/w20/pl.png" alt="PL" class="org-flag"> Tom W & <img src="https://flagpedia.net/data/us/w580/nc.png" alt="NC" class="org-flag"> Tom M</p>
+        <p class="organizers">Organizers: <img src="https://flagcdn.com/w20/ie.png" alt="IE" class="org-flag"> Ricky, <img src="https://flagcdn.com/w20/gb-sct.png" alt="SCT" class="org-flag"> Ben, <img src="https://flagcdn.com/w20/us.png" alt="US" class="org-flag"> Evan, <img src="https://flagcdn.com/w20/pl.png" alt="PL" class="org-flag"> Tom W & <img src="https://flagpedia.net/data/us/w580/nc.png" alt="NC" class="org-flag"> Tom M &nbsp;&middot;&nbsp; <a href="admin.html" style="color:#a3a3a3;font-size:0.75rem;text-decoration:none" title="Admin">&#9881;</a></p>
 
         <div id="xgDisplay" class="xg-display"></div>
 
@@ -842,7 +842,20 @@
             return { ...p, off: ratings.off, def: ratings.def };
         });
 
-        let nextId = 33;
+        // Load admin-saved player data from localStorage if available
+        (function () {
+            const saved = localStorage.getItem('otsPlayers');
+            if (!saved) return;
+            try {
+                const savedPlayers = JSON.parse(saved);
+                players.length = 0;
+                players.push(...savedPlayers);
+            } catch (e) {
+                console.warn('Failed to load saved player data:', e);
+            }
+        })();
+
+        let nextId = Math.max(...players.map(p => p.id)) + 1;
         let draggedPlayer = null;
         let editingPlayerId = null;
         // Store custom positions for players on the pitch (playerId -> {x, y})
