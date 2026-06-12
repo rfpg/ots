@@ -298,6 +298,12 @@
             opacity: 0.8;
         }
 
+        .pitch.cross-drop-target {
+            outline: 4px solid #fbbf24;
+            outline-offset: -3px;
+            transition: outline-color 0.15s;
+        }
+
         .player-marker .avatar {
             width: 32px;
             height: 32px;
@@ -617,6 +623,85 @@
             color: #a3a3a3;
             font-size: 0.75rem;
         }
+
+        /* Context menu (right-click) */
+        .context-menu {
+            position: fixed;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.08);
+            border: 1px solid #e5e5e5;
+            padding: 4px 0;
+            min-width: 180px;
+            z-index: 2000;
+            display: none;
+            font-size: 13px;
+            user-select: none;
+        }
+
+        .context-menu.active { display: block; }
+
+        .context-menu-header {
+            padding: 8px 12px 8px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #525252;
+            border-bottom: 1px solid #f0f0f0;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .context-menu-header img {
+            width: 18px;
+            height: 13px;
+            border-radius: 2px;
+            object-fit: cover;
+            box-shadow: 0 0 0 1px rgba(0,0,0,0.08);
+        }
+
+        .context-menu-item {
+            padding: 7px 14px;
+            cursor: pointer;
+            transition: background 0.1s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .context-menu-item::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .context-menu-item.blue::before     { background: #2563eb; }
+        .context-menu-item.red::before      { background: #dc2626; }
+        .context-menu-item.signedup::before { background: #059669; }
+        .context-menu-item.members::before  { background: #a3a3a3; }
+
+        .context-menu-item:hover {
+            background: #f5f5f5;
+        }
+
+        .context-menu-item.current {
+            color: #a3a3a3;
+            cursor: default;
+        }
+
+        .context-menu-item.current:hover {
+            background: transparent;
+        }
+
+        .context-menu-item.current::after {
+            content: '✓';
+            margin-left: auto;
+            color: #a3a3a3;
+            font-size: 11px;
+        }
     </style>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 </head>
@@ -728,6 +813,9 @@
         </div>
     </div>
 
+    <!-- Right-click Context Menu -->
+    <div class="context-menu" id="contextMenu"></div>
+
     <!-- Edit Modal -->
     <div class="modal-overlay" id="editModal">
         <div class="modal">
@@ -820,7 +908,7 @@
             { id: 16, name: 'Ryan', country: 'us', r: 'XlNb', pos: 'M', team: 'members' },
             { id: 17, name: 'Edwin', country: 'mx', r: 'UVNb', pos: 'M', team: 'members' },
             { id: 18, name: 'Abel', country: 'us', r: 'XlNZ', pos: 'D', team: 'members' },
-            { id: 19, name: 'Victor', country: 'sv', r: 'UVNW', pos: 'D', team: 'members' },
+            { id: 19, name: 'Victor', country: 'ec', r: 'UVNW', pos: 'D', team: 'members' },
             { id: 20, name: 'James', country: 'us', r: 'UVNY', pos: 'M', team: 'members' },
             { id: 21, name: 'Ben', country: 'gb-sct', r: 'UVNY', pos: 'F', team: 'members' },
             { id: 22, name: 'Marcos', country: 'mx', r: 'U1Nb', pos: 'D', team: 'members' },
@@ -901,6 +989,79 @@
             if (e.key === 'Escape') closeModal();
             if (e.key === 'Enter' && editingPlayerId !== null) savePlayerEdit();
         });
+
+        // ─── Right-click context menu ──────────────────────────────────────────
+        const TEAM_LABELS = {
+            blue:     'Blue Team',
+            red:      'Red Team',
+            signedup: 'Signed Up',
+            members:  'Members',
+        };
+
+        function showContextMenu(player, x, y) {
+            const menu = document.getElementById('contextMenu');
+            menu.innerHTML = '';
+
+            // Header: flag + name
+            const header = document.createElement('div');
+            header.className = 'context-menu-header';
+            header.innerHTML = `${getFlag(player.country)} ${player.name}`;
+            menu.appendChild(header);
+
+            // One item per team
+            ['blue', 'red', 'signedup', 'members'].forEach(team => {
+                const item = document.createElement('div');
+                const isCurrent = team === player.team;
+                item.className = `context-menu-item ${team}` + (isCurrent ? ' current' : '');
+                item.textContent = `Move to ${TEAM_LABELS[team]}`;
+                if (!isCurrent) {
+                    item.addEventListener('click', () => {
+                        movePlayerToTeam(player, team);
+                        hideContextMenu();
+                    });
+                }
+                menu.appendChild(item);
+            });
+
+            // Position, then nudge if off-screen
+            menu.style.left = `${x}px`;
+            menu.style.top  = `${y}px`;
+            menu.classList.add('active');
+
+            const rect = menu.getBoundingClientRect();
+            if (rect.right > window.innerWidth)  menu.style.left = `${x - rect.width}px`;
+            if (rect.bottom > window.innerHeight) menu.style.top  = `${y - rect.height}px`;
+        }
+
+        function hideContextMenu() {
+            document.getElementById('contextMenu').classList.remove('active');
+        }
+
+        function movePlayerToTeam(player, team) {
+            player.team = team;
+            // Clear any saved pitch positions for this player so they get a fresh formation slot
+            Object.keys(customPositions).forEach(key => {
+                if (key.endsWith(`-${player.id}`)) delete customPositions[key];
+            });
+            render();
+        }
+
+        function setupContextMenu(element, player) {
+            element.addEventListener('contextmenu', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                showContextMenu(player, e.clientX, e.clientY);
+            });
+        }
+
+        // Dismiss on outside click or Escape
+        document.addEventListener('mousedown', (e) => {
+            if (!e.target.closest('#contextMenu')) hideContextMenu();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') hideContextMenu();
+        });
+        window.addEventListener('scroll', hideContextMenu, true);
 
         function getTeamPlayers(team) {
             return players.filter(p => p.team === team);
@@ -1014,6 +1175,7 @@
 
                 // Make marker draggable on the pitch
                 setupPitchDrag(marker, pitch, player, team);
+                setupContextMenu(marker, player);
                 pitch.appendChild(marker);
             });
         }
@@ -1023,6 +1185,8 @@
 
         function setupPitchDrag(marker, pitch, player, team) {
             const onStart = (e) => {
+                // Only start drag on left mouse button (so right-click can open the context menu)
+                if (e.type === 'mousedown' && e.button !== 0) return;
                 e.preventDefault();
                 e.stopPropagation();
                 pitchDragState = { marker, pitch, player, team };
@@ -1033,122 +1197,128 @@
             marker.addEventListener('touchstart', onStart, { passive: false });
         }
 
-        // Global handlers for pitch dragging
-        document.addEventListener('mousemove', (e) => {
+        // Find what's under the cursor, ignoring the dragged marker
+        function getElementUnderCursor(clientX, clientY, marker) {
+            marker.style.visibility = 'hidden';
+            const el = document.elementFromPoint(clientX, clientY);
+            marker.style.visibility = '';
+            return el;
+        }
+
+        // Update marker position within its source pitch and highlight cross-team drop target
+        function updateDragVisuals(clientX, clientY) {
             if (!pitchDragState) return;
-            const { marker, pitch } = pitchDragState;
+            const { marker, pitch, team } = pitchDragState;
             const rect = pitch.getBoundingClientRect();
 
-            let x = ((e.clientX - rect.left) / rect.width) * 100;
-            let y = ((e.clientY - rect.top) / rect.height) * 100;
+            let x = ((clientX - rect.left) / rect.width) * 100;
+            let y = ((clientY - rect.top) / rect.height) * 100;
             x = Math.max(5, Math.min(95, x));
             y = Math.max(5, Math.min(95, y));
-
             marker.style.left = `${x}%`;
             marker.style.top = `${y}%`;
+
+            // Highlight the other pitch if cursor is over it
+            const otherTeam = team === 'blue' ? 'red' : 'blue';
+            const otherPitch = document.getElementById(`${otherTeam}Pitch`);
+            const under = getElementUnderCursor(clientX, clientY, marker);
+            if (under && under.closest('.pitch') === otherPitch) {
+                otherPitch.classList.add('cross-drop-target');
+            } else {
+                otherPitch.classList.remove('cross-drop-target');
+            }
+        }
+
+        // Resolve where the player was dropped and apply the appropriate change
+        function handlePitchDrop(clientX, clientY) {
+            if (!pitchDragState) return;
+            const { marker, player, team } = pitchDragState;
+            marker.classList.remove('dragging');
+
+            const otherTeam = team === 'blue' ? 'red' : 'blue';
+            const sourcePitch = document.getElementById(`${team}Pitch`);
+            const otherPitch  = document.getElementById(`${otherTeam}Pitch`);
+            otherPitch.classList.remove('cross-drop-target');
+
+            const dropEl = getElementUnderCursor(clientX, clientY, marker);
+            const targetMarker = dropEl?.closest('.player-marker');
+            const targetPitch  = dropEl?.closest('.pitch');
+
+            // 1. Cross-team swap: dropped on a marker belonging to the other team
+            if (targetMarker && targetMarker !== marker && targetPitch === otherPitch) {
+                const targetPlayer = players.find(p => p.id === parseInt(targetMarker.dataset.playerId));
+                if (targetPlayer) {
+                    player.team = otherTeam;
+                    targetPlayer.team = team;
+                    delete customPositions[`${team}-${player.id}`];
+                    delete customPositions[`${otherTeam}-${targetPlayer.id}`];
+                    pitchDragState = null;
+                    render();
+                    return;
+                }
+            }
+
+            // 2. Cross-team move: dropped on the other pitch (empty area)
+            if (targetPitch === otherPitch) {
+                player.team = otherTeam;
+                delete customPositions[`${team}-${player.id}`];
+                pitchDragState = null;
+                render();
+                return;
+            }
+
+            // 3. Same-team swap: dropped on another marker on the same pitch
+            if (targetMarker && targetMarker !== marker && targetPitch === sourcePitch) {
+                const targetPlayer = players.find(p => p.id === parseInt(targetMarker.dataset.playerId));
+                if (targetPlayer) {
+                    const posKey1 = `${team}-${player.id}`;
+                    const posKey2 = `${team}-${targetPlayer.id}`;
+                    const pos1 = customPositions[posKey1] || {
+                        x: parseFloat(marker.style.left),
+                        y: parseFloat(marker.style.top)
+                    };
+                    const pos2 = customPositions[posKey2] || {
+                        x: parseFloat(targetMarker.style.left),
+                        y: parseFloat(targetMarker.style.top)
+                    };
+                    customPositions[posKey1] = pos2;
+                    customPositions[posKey2] = pos1;
+                    pitchDragState = null;
+                    render();
+                    return;
+                }
+            }
+
+            // 4. Default: save the new custom position within the source pitch
+            customPositions[`${team}-${player.id}`] = {
+                x: parseFloat(marker.style.left),
+                y: parseFloat(marker.style.top)
+            };
+            pitchDragState = null;
+        }
+
+        // Wire up pitch drag events
+        document.addEventListener('mousemove', (e) => {
+            if (!pitchDragState) return;
+            updateDragVisuals(e.clientX, e.clientY);
         });
 
         document.addEventListener('touchmove', (e) => {
             if (!pitchDragState) return;
             e.preventDefault();
-            const { marker, pitch } = pitchDragState;
-            const rect = pitch.getBoundingClientRect();
-            const touch = e.touches[0];
-
-            let x = ((touch.clientX - rect.left) / rect.width) * 100;
-            let y = ((touch.clientY - rect.top) / rect.height) * 100;
-            x = Math.max(5, Math.min(95, x));
-            y = Math.max(5, Math.min(95, y));
-
-            marker.style.left = `${x}%`;
-            marker.style.top = `${y}%`;
+            const t = e.touches[0];
+            updateDragVisuals(t.clientX, t.clientY);
         }, { passive: false });
 
         document.addEventListener('mouseup', (e) => {
             if (!pitchDragState) return;
-            const { marker, player, team } = pitchDragState;
-            marker.classList.remove('dragging');
-
-            // Check if dropped on another player marker
-            const targetMarker = e.target.closest('.player-marker');
-            if (targetMarker && targetMarker !== marker && targetMarker.closest(`#${team}Pitch`)) {
-                const targetPlayerId = parseInt(targetMarker.dataset.playerId);
-                const targetPlayer = players.find(p => p.id === targetPlayerId);
-
-                if (targetPlayer) {
-                    // Swap positions
-                    const posKey1 = `${team}-${player.id}`;
-                    const posKey2 = `${team}-${targetPlayer.id}`;
-
-                    const pos1 = customPositions[posKey1] || {
-                        x: parseFloat(marker.style.left),
-                        y: parseFloat(marker.style.top)
-                    };
-                    const pos2 = customPositions[posKey2] || {
-                        x: parseFloat(targetMarker.style.left),
-                        y: parseFloat(targetMarker.style.top)
-                    };
-
-                    customPositions[posKey1] = pos2;
-                    customPositions[posKey2] = pos1;
-
-                    pitchDragState = null;
-                    render();
-                    return;
-                }
-            }
-
-            const posKey = `${team}-${player.id}`;
-            customPositions[posKey] = {
-                x: parseFloat(marker.style.left),
-                y: parseFloat(marker.style.top)
-            };
-            pitchDragState = null;
+            handlePitchDrop(e.clientX, e.clientY);
         });
 
         document.addEventListener('touchend', (e) => {
             if (!pitchDragState) return;
-            const { marker, player, team } = pitchDragState;
-            marker.classList.remove('dragging');
-
-            // Check if dropped on another player marker
-            const touch = e.changedTouches[0];
-            const targetElement = document.elementFromPoint(touch.clientX, touch.clientY);
-            const targetMarker = targetElement?.closest('.player-marker');
-
-            if (targetMarker && targetMarker !== marker && targetMarker.closest(`#${team}Pitch`)) {
-                const targetPlayerId = parseInt(targetMarker.dataset.playerId);
-                const targetPlayer = players.find(p => p.id === targetPlayerId);
-
-                if (targetPlayer) {
-                    // Swap positions
-                    const posKey1 = `${team}-${player.id}`;
-                    const posKey2 = `${team}-${targetPlayer.id}`;
-
-                    const pos1 = customPositions[posKey1] || {
-                        x: parseFloat(marker.style.left),
-                        y: parseFloat(marker.style.top)
-                    };
-                    const pos2 = customPositions[posKey2] || {
-                        x: parseFloat(targetMarker.style.left),
-                        y: parseFloat(targetMarker.style.top)
-                    };
-
-                    customPositions[posKey1] = pos2;
-                    customPositions[posKey2] = pos1;
-
-                    pitchDragState = null;
-                    render();
-                    return;
-                }
-            }
-
-            const posKey = `${team}-${player.id}`;
-            customPositions[posKey] = {
-                x: parseFloat(marker.style.left),
-                y: parseFloat(marker.style.top)
-            };
-            pitchDragState = null;
+            const t = e.changedTouches[0];
+            handlePitchDrop(t.clientX, t.clientY);
         });
 
         function renderList(containerId, team) {
@@ -1180,6 +1350,7 @@
             setupDragEvents(chip, player);
             setupPlayerDropTarget(chip, player);
             setupSelectionClick(chip, player);
+            setupContextMenu(chip, player);
             return chip;
         }
 
